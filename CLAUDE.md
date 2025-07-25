@@ -166,6 +166,76 @@ interface AITripResponse {
 - **Animation Strategy**: Framer Motion for smooth transitions, CSS animations for background elements
 - **Responsive Design**: Mobile-first approach with Tailwind breakpoints
 
+## Development Best Practices
+
+### DRY Principles (Don't Repeat Yourself)
+- **Extract common styling**: Use utility classes and CSS variables for repeated styles
+- **Reusable components**: Create generic components for common UI patterns
+- **Shared utilities**: Extract repeated logic into utility functions
+- **Common hooks**: Use custom hooks for repeated stateful logic
+
+### Hooks Pattern
+- **Custom hooks**: Extract stateful logic and side effects into reusable hooks
+- **Single responsibility**: Each hook should handle one specific concern
+- **Naming convention**: Use `use` prefix for all custom hooks
+- **Example structure**:
+  ```typescript
+  // src/hooks/useConversation.ts
+  export const useConversation = () => {
+    // Hook logic here
+    return { /* hook interface */ }
+  }
+  ```
+
+### Service Layer Architecture
+- **Business logic separation**: Keep API calls and business logic in service files
+- **Clear interfaces**: Define service contracts with TypeScript
+- **Error handling**: Consistent error handling patterns across services
+- **Testability**: Services should be easily testable in isolation
+- **Example structure**:
+  ```typescript
+  // src/services/conversationService.ts
+  export const conversationService = {
+    async getResponse(input: string): Promise<ConversationResponse> {
+      // Service logic here
+    }
+  }
+  ```
+
+### Component Architecture
+- **Single responsibility**: Each component should have one clear purpose
+- **Proper prop interfaces**: All props should have TypeScript interfaces
+- **Composition over inheritance**: Use component composition patterns
+- **No business logic**: Components should only handle UI rendering and user interaction
+- **Clear naming**: Component names should describe their purpose
+
+### TypeScript Best Practices
+- **Strict typing**: Use strict TypeScript configuration
+- **Interface definitions**: Define clear interfaces for all data structures
+- **Utility types**: Use TypeScript utility types (Pick, Omit, Partial) when appropriate
+- **Generic types**: Use generics for reusable type definitions
+- **No `any` types**: Avoid using `any`, prefer `unknown` or proper typing
+
+### File Organization
+- **Clear separation**: Separate components, hooks, services, types, and utilities
+- **Logical grouping**: Group related files in appropriate directories
+- **Index files**: Use index.ts files for clean imports
+- **Consistent naming**: Use consistent naming conventions across all files
+- **File structure**:
+  ```
+  src/
+  ├── components/          # UI components
+  │   ├── conversation/    # Conversation-specific components
+  │   ├── ui/             # Reusable UI components
+  │   └── layout/         # Layout components
+  ├── hooks/              # Custom React hooks
+  ├── services/           # Business logic services
+  ├── types/              # TypeScript interfaces
+  ├── utils/              # Utility functions
+  ├── contexts/           # React contexts
+  └── lib/                # External library configurations
+  ```
+
 ## Security & Production Considerations
 
 ### Rate Limiting

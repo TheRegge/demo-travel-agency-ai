@@ -1,47 +1,23 @@
 "use client"
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
 import { useTravelContext } from "@/contexts/TravelContext"
 import { Button } from "@/components/ui/button"
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { ResponsiveTropicalBackground } from "@/components/illustrations"
 import { FeaturedDestinationsGrid } from "@/components/layout/FeaturedDestinationsGrid"
+import { ConversationDisplay, ConversationInput } from "@/components/conversation"
+import { useConversation } from "@/hooks"
 
 export default function HomePage() {
-  const { state } = useTravelContext()
-  const router = useRouter()
-  const [query, setQuery] = useState("")
-  const [aiResponse, setAiResponse] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
-  const maxChars = 750
+  const { state: travelState } = useTravelContext()
+  const { state: conversationState, submitMessage, updateInput } = useConversation()
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!query.trim()) return
-
-    setIsLoading(true)
-    
-    // Simulate AI response delay
-    setTimeout(() => {
-      setAiResponse(`Great choice! I'd love to help you plan your dream trip. Based on what you've told me, I can already see some amazing possibilities. Let me gather some personalized recommendations that match your budget, style, and preferences. What specific aspects of your trip are most important to you?`)
-      setQuery("")
-      setIsLoading(false)
-    }, 2000)
+  const handleSubmit = (message: string) => {
+    submitMessage(message)
   }
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const value = e.target.value
-    if (value.length <= maxChars) {
-      setQuery(value)
-    }
-  }
-
-  const getCounterColor = () => {
-    const remaining = maxChars - query.length
-    if (remaining <= 50) return "text-red-500"
-    if (remaining <= 150) return "text-amber-500" 
-    return "text-gray-500"
+  const handleInputChange = (value: string) => {
+    updateInput(value)
   }
 
   return (
@@ -69,59 +45,18 @@ export default function HomePage() {
       {/* Hero Section */}
       <section className="relative px-4 py-32 text-center min-h-screen flex items-center justify-center z-50">
         <div className="mx-auto max-w-4xl w-full">
-          {!aiResponse && !isLoading ? (
-            <>
-              <h1 className="mb-8 text-5xl font-bold text-gray-900 md:text-7xl drop-shadow-sm">
-                Your AI Travel Planning
-                <span className="text-sky-600"> Assistant</span>
-              </h1>
-              <p className="mb-16 text-xl text-gray-700 md:text-2xl max-w-3xl mx-auto leading-relaxed drop-shadow-sm">
-                Tell me about your dream trip
-              </p>
-            </>
-          ) : (
-            <>
-              {isLoading ? (
-                <div className="mb-16 flex flex-col items-center">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-500 mb-4"></div>
-                  <p className="text-xl text-gray-600">Creating your perfect trip...</p>
-                </div>
-              ) : (
-                <div className="mb-16 max-w-4xl mx-auto">
-                  <p className="text-2xl md:text-3xl text-gray-800 leading-relaxed drop-shadow-sm">
-                    {aiResponse}
-                  </p>
-                </div>
-              )}
-            </>
-          )}
-          <form onSubmit={handleSubmit} className="max-w-3xl mx-auto space-y-6">
-            <div className="relative">
-              <textarea
-                value={query}
-                onChange={handleInputChange}
-                placeholder="I want to visit beaches in Thailand with my family on a $3000 budget..."
-                className="w-full px-12 py-10 text-2xl md:text-3xl rounded-2xl border-2 border-gray-300 focus:border-sky-500 focus:outline-none shadow-xl bg-white placeholder:text-gray-400 transition-all duration-200 hover:border-gray-400 resize-none min-h-[150px] md:min-h-[180px]"
-                autoFocus
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault()
-                    handleSubmit(e)
-                  }
-                }}
-              />
-              <div className={`absolute bottom-4 right-4 text-sm font-medium ${getCounterColor()}`}>
-                {query.length}/{maxChars}
-              </div>
-            </div>
-            <button
-              type="submit"
-              disabled={!query.trim()}
-              className="w-full bg-gradient-to-r from-sky-500 to-emerald-500 hover:from-sky-600 hover:to-emerald-600 disabled:bg-sky-100 disabled:cursor-not-allowed text-white disabled:text-white font-bold text-xl md:text-2xl py-6 px-12 rounded-2xl shadow-xl transition-all duration-200 transform hover:scale-[1.02] disabled:hover:scale-100"
-            >
-              Create My Dream Adventure
-            </button>
-          </form>
+          <ConversationDisplay
+            isLoading={conversationState.isLoading}
+            response={conversationState.currentResponse}
+          />
+          
+          <ConversationInput
+            value={conversationState.userInput}
+            onChange={handleInputChange}
+            onSubmit={handleSubmit}
+            disabled={conversationState.isLoading}
+            maxLength={750}
+          />
         </div>
       </section>
 
@@ -172,14 +107,14 @@ export default function HomePage() {
       </section>
 
       {/* AI Recommendations Section (appears when trips are recommended) */}
-      {state.recommendedTrips.length > 0 && (
+      {travelState.recommendedTrips.length > 0 && (
         <section className="px-4 py-16 bg-white">
           <div className="mx-auto max-w-6xl">
             <h2 className="mb-8 text-center text-3xl font-bold text-gray-900">
               AI Recommended Trips for You
             </h2>
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {state.recommendedTrips.map((trip) => (
+              {travelState.recommendedTrips.map((trip) => (
                 <Card key={trip.tripId} className="hover:shadow-lg transition-shadow">
                   <CardHeader>
                     <CardTitle>{trip.destination}</CardTitle>

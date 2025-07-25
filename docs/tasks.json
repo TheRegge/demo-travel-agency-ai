@@ -140,67 +140,67 @@
     {
       "id": "5",
       "name": "Chat Interface Static Implementation",
-      "description": "Build the beautiful chat interface with mock conversation examples, focusing on clean design and user experience. Create the foundation for later AI integration while ensuring visual perfection.",
-      "status": "done",
+      "description": "OBSOLETE: Originally planned separate chat interface, but simplified to homepage-only conversation flow for better UX and demo simplicity.",
+      "status": "obsolete",
       "dependsOn": ["2", "3"],
       "phase": "phase1",
       "subtasks": [
         {
           "id": "5.1",
           "name": "Create Chat Container & Layout",
-          "description": "Build clean chat interface container with WhatsApp/iMessage-inspired design: pure white background, subtle shadow, generous spacing. Create message bubble components for user (blue) and assistant (gray) with proper typography and readability. Implement as 'message in a bottle' or 'beach postcard' style card floating on tropical background.",
-          "status": "done",
+          "description": "OBSOLETE: No longer needed with homepage-only conversation flow.",
+          "status": "obsolete",
           "dependsOn": []
         },
         {
           "id": "5.2",
           "name": "Design Message Components",
-          "description": "Create reusable message components: UserMessage, AssistantMessage, TypingIndicator, and MessageInput. Include timestamp display, message status indicators, and proper spacing. Use system fonts for optimal readability and high contrast against backgrounds.",
-          "status": "done",
+          "description": "OBSOLETE: No longer needed with homepage-only conversation flow.",
+          "status": "obsolete",
           "dependsOn": ["5.1"]
         },
         {
           "id": "5.3",
           "name": "Create Mock Conversation Examples",
-          "description": "Implement rich mock conversations showcasing different scenarios: budget-aware planning, family trip planning, European vacation, Disney World example, and budget-sensitive responses. Include the exact examples from PRD lines 60-93 and 120-142. Show structured itineraries, budget breakdowns, and follow-up questions.",
-          "status": "done",
+          "description": "OBSOLETE: No longer needed with homepage-only conversation flow.",
+          "status": "obsolete",
           "dependsOn": ["5.2"]
         },
         {
           "id": "5.4",
           "name": "Add Interactive Elements & States",
-          "description": "Implement beautiful loading states (beach ball bouncing or paper airplane flying), typing animations, message sending animations, and input field with pill-shaped design. Add disabled states and visual feedback for user interactions. Ensure mobile-optimized touch targets.",
-          "status": "done",
+          "description": "OBSOLETE: No longer needed with homepage-only conversation flow.",
+          "status": "obsolete",
           "dependsOn": ["5.3"]
         }
       ]
     },
     {
       "id": "6",
-      "name": "Mock AI Response System",
-      "description": "Create sophisticated keyword-based response system that simulates AI behavior for the static demo. This provides realistic interactivity while the design is being perfected.",
+      "name": "Homepage AI Integration Infrastructure",
+      "description": "Build UI components and data structures needed for real AI integration. Focus on conversation flow, state management, and response display system with minimal placeholder logic that's easy to replace in Phase 2.",
       "status": "pending",
-      "dependsOn": ["3", "5"],
+      "dependsOn": ["3"],
       "phase": "phase1",
       "subtasks": [
         {
           "id": "6.1",
-          "name": "Implement Keyword Detection Logic",
-          "description": "Create mockAIResponse function with sophisticated keyword detection: budget-related queries, family planning, specific destinations, date/timing questions. Use string matching and basic NLP techniques to categorize user input and select appropriate response templates.",
+          "name": "Build Homepage Conversation UI Components",
+          "description": "Create conversation flow interface components: proper loading states, response transitions, and input handling. Build reusable UI components that will integrate with real AI in Phase 2. Focus on user experience and visual polish.",
           "status": "pending",
           "dependsOn": []
         },
         {
           "id": "6.2",
-          "name": "Create Response Templates",
-          "description": "Build comprehensive response templates for each category: budget responses (with alternatives and scaling options), family responses (kid-friendly activities and accommodations), destination-specific responses, and fallback responses. Include structured data format that matches AITripResponse interface.",
+          "name": "Set Up AI Response Data Structures",
+          "description": "Define TypeScript interfaces and state management for AI responses. Create proper data flow, context providers, and integration hooks that real AI will use. Ensure type safety and proper architecture for Phase 2 integration.",
           "status": "pending",
           "dependsOn": ["6.1"]
         },
         {
           "id": "6.3",
-          "name": "Implement Mock Trip Recommendations",
-          "description": "Create logic to return mock trip recommendations based on user input, using trip IDs from mock data. Implement scoring system, budget filtering, and trip selection logic. Ensure responses always include 2-3 options when possible, following the PRD guidelines.",
+          "name": "Add Minimal Placeholder System",
+          "description": "Create simple placeholder responses clearly marked with '// TODO: REMOVE IN PHASE 2'. Use static text like 'Analyzing your request...' with obvious markers for replacement. Keep logic minimal and easy to identify for removal.",
           "status": "pending",
           "dependsOn": ["6.2"]
         }
@@ -208,8 +208,8 @@
     },
     {
       "id": "7",
-      "name": "Dynamic Trip Display Components",
-      "description": "Build the UI components that will display trip recommendations outside the chat interface. These components will be populated by both mock responses and later real AI responses.",
+      "name": "Homepage Trip Display Components",
+      "description": "Build UI components that display trip recommendations integrated with the homepage conversation flow. Components appear below the conversation area and update dynamically based on AI responses.",
       "status": "pending",
       "dependsOn": ["2", "3"],
       "phase": "phase1",
@@ -223,8 +223,8 @@
         },
         {
           "id": "7.2",
-          "name": "Build TripRecommendations Section",
-          "description": "Create responsive grid layout for displaying recommended trips: 1 column on mobile, 3 columns on desktop. Include section header, empty state message, loading skeletons, and smooth entry animations using Framer Motion. Position this section to appear below the chat interface.",
+          "name": "Build Homepage Trip Recommendations Section",
+          "description": "Create responsive grid layout for displaying recommended trips below the homepage conversation area: 1 column on mobile, 3 columns on desktop. Include smooth entry animations and integrate seamlessly with the homepage tropical theme.",
           "status": "pending",
           "dependsOn": ["7.1"]
         },
@@ -239,30 +239,30 @@
     },
     {
       "id": "8",
-      "name": "State Management & Interactivity",
-      "description": "Implement React Context for global state management and connect all interactive elements. Enable the mock AI responses to update trip recommendations in real-time.",
+      "name": "Homepage State Management & Interactivity",
+      "description": "Implement simple React Context for homepage UI state management. Focus on basic state needed for real AI integration: loading states, user input, current response, and trip display. Avoid complex mock conversation logic.",
       "status": "pending",
       "dependsOn": ["6", "7"],
       "phase": "phase1",
       "subtasks": [
         {
           "id": "8.1",
-          "name": "Create Travel Context Provider",
-          "description": "Implement React Context with AppState interface including: chatHistory, recommendedTrips, savedTrips, activeFilters, isAIProcessing, selectedTripId. Create context actions: updateRecommendations, selectTrip, saveTrip, and proper TypeScript typing.",
+          "name": "Create Simple Homepage Context",
+          "description": "Implement basic React Context for UI state: isLoading, currentResponse, userInput, recommendedTrips. Design state structure that real AI will use, avoiding complex conversation tracking or mock-specific logic.",
           "status": "pending",
           "dependsOn": []
         },
         {
           "id": "8.2",
-          "name": "Connect Chat Interface to State",
-          "description": "Update ChatInterface component to use context: send messages through context actions, update chat history, trigger mock AI responses, and update recommended trips globally. Implement proper loading states and error handling.",
+          "name": "Connect Homepage UI to Simple State",
+          "description": "Update homepage component to use context for basic UI management: input handling, loading states, response display. Connect with placeholder system from Task 6.3, keeping integration minimal and easy to replace.",
           "status": "pending",
           "dependsOn": ["8.1"]
         },
         {
           "id": "8.3",
-          "name": "Connect Homepage Dynamic Updates",
-          "description": "Update Homepage component to reactively display AI recommendations section when trips are available. Implement smooth transitions and animations when new trips appear. Ensure proper responsive behavior and accessibility.",
+          "name": "Integrate Trip Display with State",
+          "description": "Connect trip recommendation components with homepage state. Focus on the data flow and UI updates that real AI will use, avoiding complex mock-specific logic.",
           "status": "pending",
           "dependsOn": ["8.2"]
         }
@@ -271,9 +271,9 @@
     {
       "id": "9",
       "name": "Mobile Optimization & Responsive Design",
-      "description": "Ensure perfect mobile experience across all components and interactions. Optimize touch targets, animations, and layout for mobile-first travel planning scenarios.",
+      "description": "Ensure perfect mobile experience for the homepage conversation flow. Optimize touch targets, animations, and layout for mobile-first travel planning scenarios.",
       "status": "pending",
-      "dependsOn": ["4", "5", "7", "8"],
+      "dependsOn": ["4", "7", "8"],
       "phase": "phase1",
       "subtasks": [
         {
@@ -285,8 +285,8 @@
         },
         {
           "id": "9.2",
-          "name": "Mobile Chat Interface Optimization",
-          "description": "Optimize chat interface for mobile: proper viewport handling, touch-friendly input fields, swipe gestures, keyboard behavior, and message bubble sizing. Ensure chat remains usable with on-screen keyboard displayed.",
+          "name": "Homepage Conversation Mobile Optimization",
+          "description": "Optimize homepage conversation flow for mobile: proper viewport handling for textarea input, touch-friendly interactions, keyboard behavior, and smooth transitions between conversation states.",
           "status": "pending",
           "dependsOn": ["9.1"]
         },
@@ -333,7 +333,7 @@
     {
       "id": "11",
       "name": "AI Integration Setup",
-      "description": "Replace mock AI responses with real Google Gemini integration while maintaining the same UI behavior and response format.",
+      "description": "Replace simple placeholder responses with real Google Gemini integration. Remove clearly-marked placeholder logic and integrate real AI while maintaining the same UI behavior and response format.",
       "status": "pending",
       "dependsOn": ["10"],
       "phase": "phase2",
@@ -347,8 +347,8 @@
         },
         {
           "id": "11.2",
-          "name": "Implement JSON Response Parsing",
-          "description": "Create robust JSON parsing logic for Gemini responses. Handle malformed JSON gracefully with fallback to mock responses. Validate response structure against AITripResponse interface and ensure trip IDs match available mock data.",
+          "name": "Replace Placeholder System with Real AI",
+          "description": "Remove placeholder logic marked with '// TODO: REMOVE IN PHASE 2' and integrate real Gemini responses. Create robust JSON parsing and validation against AITripResponse interface. Handle errors gracefully with simple fallback messages.",
           "status": "pending",
           "dependsOn": ["11.1"]
         },
@@ -441,7 +441,7 @@
         {
           "id": "14.2",
           "name": "Implement API Failure Fallbacks",
-          "description": "Create fallback logic for Gemini API failures: automatically switch to sophisticated mock responses, maintain conversation flow, and inform users gracefully. Ensure fallback responses match the same quality and format as AI responses.",
+          "description": "Create fallback logic for Gemini API failures: show simple, static error messages clearly marked for future enhancement. Maintain conversation flow and inform users gracefully without building complex mock response systems.",
           "status": "pending",
           "dependsOn": ["14.1"]
         },
