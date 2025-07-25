@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { MessageBubble } from "./MessageBubble"
@@ -17,7 +17,11 @@ interface Message {
   status?: "sending" | "sent" | "error"
 }
 
-export function ChatContainer() {
+interface ChatContainerProps {
+  initialQuery?: string
+}
+
+export function ChatContainer({ initialQuery = "" }: ChatContainerProps) {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "welcome",
@@ -29,6 +33,13 @@ export function ChatContainer() {
   const [isTyping, setIsTyping] = useState(false)
   const [inputValue, setInputValue] = useState("")
   const [showExamples, setShowExamples] = useState(true)
+
+  // Automatically send the initial query when component mounts
+  useEffect(() => {
+    if (initialQuery) {
+      handleSendMessage(initialQuery)
+    }
+  }, [])
 
   const loadMockConversation = (type: ConversationType) => {
     setShowExamples(false)

@@ -1,9 +1,13 @@
 "use client"
 
+import { useSearchParams } from "next/navigation"
 import { ChatContainer } from "@/components/chat"
 import { ResponsiveTropicalBackground } from "@/components/illustrations"
 
 export default function ChatPage() {
+  const searchParams = useSearchParams()
+  const initialQuery = searchParams.get("q") || ""
+
   return (
     <div className="min-h-screen relative">
       {/* Tropical Background */}
@@ -27,7 +31,7 @@ export default function ChatPage() {
 
           {/* Chat Interface */}
           <div className="flex justify-center">
-            <ChatContainer />
+            <ChatContainer initialQuery={initialQuery} />
           </div>
 
           {/* Usage Tips */}

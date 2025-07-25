@@ -1,14 +1,24 @@
 "use client"
 
+import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { useTravelContext } from "@/contexts/TravelContext"
 import { Button } from "@/components/ui/button"
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { ResponsiveTropicalBackground } from "@/components/illustrations"
 import { FeaturedDestinationsGrid } from "@/components/layout/FeaturedDestinationsGrid"
-import Link from "next/link"
 
 export default function HomePage() {
   const { state } = useTravelContext()
+  const router = useRouter()
+  const [query, setQuery] = useState("")
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (query.trim()) {
+      router.push(`/chat?q=${encodeURIComponent(query)}`)
+    }
+  }
 
   return (
     <div className="min-h-screen relative">
@@ -18,20 +28,24 @@ export default function HomePage() {
       </div>
       {/* Hero Section */}
       <section className="relative px-4 py-32 text-center min-h-screen flex items-center justify-center z-50">
-        <div className="mx-auto max-w-4xl">
+        <div className="mx-auto max-w-4xl w-full">
           <h1 className="mb-8 text-5xl font-bold text-gray-900 md:text-7xl drop-shadow-sm">
             Your AI Travel Planning
             <span className="text-sky-600"> Assistant</span>
           </h1>
-          <p className="mb-12 text-xl text-gray-700 md:text-2xl max-w-3xl mx-auto leading-relaxed drop-shadow-sm">
-            Discover personalized travel recommendations, detailed itineraries, and budget-friendly options 
-            tailored just for you.
+          <p className="mb-16 text-xl text-gray-700 md:text-2xl max-w-3xl mx-auto leading-relaxed drop-shadow-sm">
+            Tell me about your dream trip
           </p>
-          <Link href="/chat">
-            <Button variant="tropical" size="lg" className="text-lg px-12 py-4">
-              Start Planning Your Trip
-            </Button>
-          </Link>
+          <form onSubmit={handleSubmit} className="max-w-3xl mx-auto">
+            <input
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="I want to visit beaches in Thailand with my family on a $3000 budget..."
+              className="w-full px-10 py-8 text-xl md:text-2xl rounded-2xl border-2 border-gray-300 focus:border-sky-500 focus:outline-none shadow-xl bg-white placeholder:text-gray-400 transition-all duration-200 hover:border-gray-400"
+              autoFocus
+            />
+          </form>
         </div>
       </section>
 
