@@ -102,6 +102,18 @@ User Input (Chat) → Mock/AI Response → Structured JSON → TravelContext →
 - **Background**: Playful tropical elements (palm trees, clouds, waves)
 - **Mobile-First**: Responsive design across all devices
 
+### Style Guide
+
+#### Primary Button Gradient
+**Perfect gradient for primary buttons:**
+```css
+bg-gradient-to-r from-sky-500 to-emerald-500 hover:from-sky-600 hover:to-emerald-600
+```
+- **Text Color**: Always white (`text-white`)
+- **Usage**: Primary actions, submit buttons, call-to-action elements
+- **Hover Effect**: Darker variants of both colors
+- **Disabled State**: `disabled:bg-sky-100 disabled:text-sky-300`
+
 ## AI Integration Specifics
 
 ### Gemini Configuration

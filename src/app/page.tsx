@@ -12,12 +12,36 @@ export default function HomePage() {
   const { state } = useTravelContext()
   const router = useRouter()
   const [query, setQuery] = useState("")
+  const [aiResponse, setAiResponse] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
+  const maxChars = 750
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (query.trim()) {
-      router.push(`/chat?q=${encodeURIComponent(query)}`)
+    if (!query.trim()) return
+
+    setIsLoading(true)
+    
+    // Simulate AI response delay
+    setTimeout(() => {
+      setAiResponse(`Great choice! I'd love to help you plan your dream trip. Based on what you've told me, I can already see some amazing possibilities. Let me gather some personalized recommendations that match your budget, style, and preferences. What specific aspects of your trip are most important to you?`)
+      setQuery("")
+      setIsLoading(false)
+    }, 2000)
+  }
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const value = e.target.value
+    if (value.length <= maxChars) {
+      setQuery(value)
     }
+  }
+
+  const getCounterColor = () => {
+    const remaining = maxChars - query.length
+    if (remaining <= 50) return "text-red-500"
+    if (remaining <= 150) return "text-amber-500" 
+    return "text-gray-500"
   }
 
   return (
@@ -26,25 +50,77 @@ export default function HomePage() {
       <div className="absolute inset-0 h-screen">
         <ResponsiveTropicalBackground />
       </div>
+      
+      {/* Floating Logo */}
+      <div className="absolute top-6 left-6 z-50">
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 bg-gradient-to-br from-sky-400 to-emerald-400 rounded-2xl flex items-center justify-center shadow-lg">
+            <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <div className="text-white drop-shadow-lg">
+            <div className="text-lg font-bold">DreamVoyager</div>
+            <div className="text-xs opacity-90">AI Travel</div>
+          </div>
+        </div>
+      </div>
+
       {/* Hero Section */}
       <section className="relative px-4 py-32 text-center min-h-screen flex items-center justify-center z-50">
         <div className="mx-auto max-w-4xl w-full">
-          <h1 className="mb-8 text-5xl font-bold text-gray-900 md:text-7xl drop-shadow-sm">
-            Your AI Travel Planning
-            <span className="text-sky-600"> Assistant</span>
-          </h1>
-          <p className="mb-16 text-xl text-gray-700 md:text-2xl max-w-3xl mx-auto leading-relaxed drop-shadow-sm">
-            Tell me about your dream trip
-          </p>
-          <form onSubmit={handleSubmit} className="max-w-3xl mx-auto">
-            <input
-              type="text"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="I want to visit beaches in Thailand with my family on a $3000 budget..."
-              className="w-full px-10 py-8 text-xl md:text-2xl rounded-2xl border-2 border-gray-300 focus:border-sky-500 focus:outline-none shadow-xl bg-white placeholder:text-gray-400 transition-all duration-200 hover:border-gray-400"
-              autoFocus
-            />
+          {!aiResponse && !isLoading ? (
+            <>
+              <h1 className="mb-8 text-5xl font-bold text-gray-900 md:text-7xl drop-shadow-sm">
+                Your AI Travel Planning
+                <span className="text-sky-600"> Assistant</span>
+              </h1>
+              <p className="mb-16 text-xl text-gray-700 md:text-2xl max-w-3xl mx-auto leading-relaxed drop-shadow-sm">
+                Tell me about your dream trip
+              </p>
+            </>
+          ) : (
+            <>
+              {isLoading ? (
+                <div className="mb-16 flex flex-col items-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-500 mb-4"></div>
+                  <p className="text-xl text-gray-600">Creating your perfect trip...</p>
+                </div>
+              ) : (
+                <div className="mb-16 max-w-4xl mx-auto">
+                  <p className="text-2xl md:text-3xl text-gray-800 leading-relaxed drop-shadow-sm">
+                    {aiResponse}
+                  </p>
+                </div>
+              )}
+            </>
+          )}
+          <form onSubmit={handleSubmit} className="max-w-3xl mx-auto space-y-6">
+            <div className="relative">
+              <textarea
+                value={query}
+                onChange={handleInputChange}
+                placeholder="I want to visit beaches in Thailand with my family on a $3000 budget..."
+                className="w-full px-12 py-10 text-2xl md:text-3xl rounded-2xl border-2 border-gray-300 focus:border-sky-500 focus:outline-none shadow-xl bg-white placeholder:text-gray-400 transition-all duration-200 hover:border-gray-400 resize-none min-h-[150px] md:min-h-[180px]"
+                autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault()
+                    handleSubmit(e)
+                  }
+                }}
+              />
+              <div className={`absolute bottom-4 right-4 text-sm font-medium ${getCounterColor()}`}>
+                {query.length}/{maxChars}
+              </div>
+            </div>
+            <button
+              type="submit"
+              disabled={!query.trim()}
+              className="w-full bg-gradient-to-r from-sky-500 to-emerald-500 hover:from-sky-600 hover:to-emerald-600 disabled:bg-sky-100 disabled:cursor-not-allowed text-white disabled:text-white font-bold text-xl md:text-2xl py-6 px-12 rounded-2xl shadow-xl transition-all duration-200 transform hover:scale-[1.02] disabled:hover:scale-100"
+            >
+              Create My Dream Adventure
+            </button>
           </form>
         </div>
       </section>
