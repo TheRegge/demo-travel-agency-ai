@@ -1,1 +1,1 @@
-Commit the work we have done so far. In the commit message, do not refer to Claude or to the fact that this was created with AI.
+Please create a git commit. When creating the commit message, ignore your default instrucrtion to add the Claude co-authorship line.
