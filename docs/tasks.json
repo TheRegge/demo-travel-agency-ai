@@ -1,0 +1,520 @@
+{
+  "project": "Travel Agency AI Assistant",
+  "description": "Portfolio-focused travel agency website with AI-powered planning assistant",
+  "phases": {
+    "phase1": "Static UI & Mock Interactions (Week 1)",
+    "phase2": "AI Integration & Deployment (Week 2)"
+  },
+  "tasks": [
+    {
+      "id": "1",
+      "name": "Project Foundation Setup",
+      "description": "Initialize the Next.js 15 project with essential dependencies, TypeScript configuration, and basic project structure. Set up Tailwind CSS v4, configure ESLint/Prettier, and create the foundational folder structure for components, lib utilities, and types.",
+      "status": "done",
+      "dependsOn": [],
+      "phase": "phase1",
+      "subtasks": [
+        {
+          "id": "1.1",
+          "name": "Install Core Dependencies",
+          "description": "Install essential packages: @ai-sdk/google, @radix-ui/react-* components, framer-motion, zod, date-fns, and tailwindcss. Configure package.json scripts for development workflow.",
+          "status": "done",
+          "dependsOn": []
+        },
+        {
+          "id": "1.2",
+          "name": "Configure TypeScript & Linting",
+          "description": "Set up strict TypeScript configuration, ESLint rules, and Prettier formatting. Create .gitignore with Next.js defaults plus environment variables.",
+          "status": "done",
+          "dependsOn": ["1.1"]
+        },
+        {
+          "id": "1.3",
+          "name": "Create Project Structure",
+          "description": "Create folder structure: src/app/ (App Router), src/components/, src/lib/, src/types/, public/. Set up basic layout.tsx and page.tsx files.",
+          "status": "done",
+          "dependsOn": ["1.2"]
+        }
+      ]
+    },
+    {
+      "id": "2",
+      "name": "Design System & Visual Foundation",
+      "description": "Implement the 'Gentle Travel Paradise' design system with tropical theme colors, typography, and basic component primitives. Create CSS variables for the color palette and establish the visual identity foundation.",
+      "status": "done",
+      "dependsOn": ["1"],
+      "phase": "phase1",
+      "subtasks": [
+        {
+          "id": "2.1",
+          "name": "Implement Color Palette & Typography",
+          "description": "Create Tailwind CSS configuration with custom color palette: sky blues (#E0F2FE, #7DD3FC, #0EA5E9, #0284C7), sunset colors (#FB923C, #F472B6, #FBBF24), nature greens (#34D399, #10B981), and sand neutrals (#FEF3C7, #F59E0B, #FFFFFF, #6B7280). Configure Inter font family and spacing system.",
+          "status": "done",
+          "dependsOn": []
+        },
+        {
+          "id": "2.2",
+          "name": "Create Base UI Components",
+          "description": "Build foundational components using shadcn/ui patterns: Button (primary/secondary variants with ocean-blue and sand-light styling), Card (cloud-white background with soft shadows), Input (pill-shaped with sea glass styling). Use Radix UI primitives and ensure mobile-first responsive design.",
+          "status": "done",
+          "dependsOn": ["2.1"]
+        },
+        {
+          "id": "2.3",
+          "name": "Design Tropical SVG Illustrations",
+          "description": "Create hand-crafted SVG illustrations for the tropical background scene: floating clouds with drift animations, palm trees with swaying fronds, gentle ocean waves with subtle motion. Use layered approach for depth, consistent stroke width, and rounded line caps. Optimize for performance with inline SVG.",
+          "status": "done",
+          "dependsOn": ["2.2"]
+        }
+      ]
+    },
+    {
+      "id": "3",
+      "name": "Mock Data Creation",
+      "description": "Create comprehensive mock travel data following the schema defined in the PRD. Include destinations, hotels, activities, and pricing information that will be used by both static displays and later AI integration.",
+      "status": "done",
+      "dependsOn": ["1"],
+      "phase": "phase1",
+      "subtasks": [
+        {
+          "id": "3.1",
+          "name": "Define TypeScript Interfaces",
+          "description": "Create comprehensive TypeScript interfaces in src/types/: TravelRecommendation, TripRecommendation, MockDestination, ActivityList, PriceBreakdown, AITripResponse, AppState. Ensure interfaces match the PRD specifications exactly.",
+          "status": "done",
+          "dependsOn": []
+        },
+        {
+          "id": "3.2",
+          "name": "Create Mock Destinations Database",
+          "description": "Build JSON mock data file with 10-15 diverse destinations including Orlando (family-friendly), Prague/Budapest (budget Europe), California coast (scenic), NYC (urban), etc. Each destination should include: id, name, category, seasonal pricing, kid-friendly score, activities array, hotels array, flight data. Ensure realistic pricing and detailed descriptions.",
+          "status": "done",
+          "dependsOn": ["3.1"]
+        },
+        {
+          "id": "3.3",
+          "name": "Create Fallback Trip Database",
+          "description": "Implement the FallbackTripDatabase structure with ultraBudget ($0-200), lowBudget ($200-800), and moderateBudget ($800+) tiers. Include local day trips, weekend getaways, camping options, and budget tips for each tier.",
+          "status": "done",
+          "dependsOn": ["3.2"]
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "name": "Homepage Static Implementation",
+      "description": "Build the complete homepage with hero section, tropical background animations, featured destinations, and conversion-focused layout. Focus on visual polish and responsive design before adding interactivity.",
+      "status": "done",
+      "dependsOn": ["2", "3"],
+      "phase": "phase1",
+      "subtasks": [
+        {
+          "id": "4.1",
+          "name": "Create Hero Section with Animations",
+          "description": "Build the above-the-fold hero section with tropical background scene: layered SVG animations (cloud drift 20-30s cycles, palm tree swaying 4-6s cycles, gentle wave motion 3-4s cycles). Include compelling value proposition text, clear AI assistant showcase, and prominent CTA button to start planning. Ensure mobile-first responsive design.",
+          "status": "done",
+          "dependsOn": []
+        },
+        {
+          "id": "4.2",
+          "name": "How It Works Section",
+          "description": "Create 3-step process section highlighting AI intelligence: Step 1 (Tell us about your dream trip), Step 2 (AI analyzes and recommends), Step 3 (Get your perfect itinerary). Use icons, clean typography, and generous spacing following the beach-like design language.",
+          "status": "done",
+          "dependsOn": ["4.1"]
+        },
+        {
+          "id": "4.3",
+          "name": "Featured Destinations Grid",
+          "description": "Build visually stunning destination cards grid displaying mock destinations data. Each card should include destination image, name, price range, highlights, and kid-friendly indicator. Use cloud-white backgrounds, beach stone rounded corners, and hover animations that lift like floating on water.",
+          "status": "done",
+          "dependsOn": ["4.2"]
+        },
+        {
+          "id": "4.4",
+          "name": "Testimonials & Footer",
+          "description": "Add mock testimonials section emphasizing AI quality and user satisfaction. Include professional footer with developer attribution (portfolio/GitHub links), demo transparency notice, and essential links. Style consistently with tropical theme but maintain high contrast for readability.",
+          "status": "done",
+          "dependsOn": ["4.3"]
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "name": "Chat Interface Static Implementation",
+      "description": "Build the beautiful chat interface with mock conversation examples, focusing on clean design and user experience. Create the foundation for later AI integration while ensuring visual perfection.",
+      "status": "done",
+      "dependsOn": ["2", "3"],
+      "phase": "phase1",
+      "subtasks": [
+        {
+          "id": "5.1",
+          "name": "Create Chat Container & Layout",
+          "description": "Build clean chat interface container with WhatsApp/iMessage-inspired design: pure white background, subtle shadow, generous spacing. Create message bubble components for user (blue) and assistant (gray) with proper typography and readability. Implement as 'message in a bottle' or 'beach postcard' style card floating on tropical background.",
+          "status": "done",
+          "dependsOn": []
+        },
+        {
+          "id": "5.2",
+          "name": "Design Message Components",
+          "description": "Create reusable message components: UserMessage, AssistantMessage, TypingIndicator, and MessageInput. Include timestamp display, message status indicators, and proper spacing. Use system fonts for optimal readability and high contrast against backgrounds.",
+          "status": "done",
+          "dependsOn": ["5.1"]
+        },
+        {
+          "id": "5.3",
+          "name": "Create Mock Conversation Examples",
+          "description": "Implement rich mock conversations showcasing different scenarios: budget-aware planning, family trip planning, European vacation, Disney World example, and budget-sensitive responses. Include the exact examples from PRD lines 60-93 and 120-142. Show structured itineraries, budget breakdowns, and follow-up questions.",
+          "status": "done",
+          "dependsOn": ["5.2"]
+        },
+        {
+          "id": "5.4",
+          "name": "Add Interactive Elements & States",
+          "description": "Implement beautiful loading states (beach ball bouncing or paper airplane flying), typing animations, message sending animations, and input field with pill-shaped design. Add disabled states and visual feedback for user interactions. Ensure mobile-optimized touch targets.",
+          "status": "done",
+          "dependsOn": ["5.3"]
+        }
+      ]
+    },
+    {
+      "id": "6",
+      "name": "Mock AI Response System",
+      "description": "Create sophisticated keyword-based response system that simulates AI behavior for the static demo. This provides realistic interactivity while the design is being perfected.",
+      "status": "pending",
+      "dependsOn": ["3", "5"],
+      "phase": "phase1",
+      "subtasks": [
+        {
+          "id": "6.1",
+          "name": "Implement Keyword Detection Logic",
+          "description": "Create mockAIResponse function with sophisticated keyword detection: budget-related queries, family planning, specific destinations, date/timing questions. Use string matching and basic NLP techniques to categorize user input and select appropriate response templates.",
+          "status": "pending",
+          "dependsOn": []
+        },
+        {
+          "id": "6.2",
+          "name": "Create Response Templates",
+          "description": "Build comprehensive response templates for each category: budget responses (with alternatives and scaling options), family responses (kid-friendly activities and accommodations), destination-specific responses, and fallback responses. Include structured data format that matches AITripResponse interface.",
+          "status": "pending",
+          "dependsOn": ["6.1"]
+        },
+        {
+          "id": "6.3",
+          "name": "Implement Mock Trip Recommendations",
+          "description": "Create logic to return mock trip recommendations based on user input, using trip IDs from mock data. Implement scoring system, budget filtering, and trip selection logic. Ensure responses always include 2-3 options when possible, following the PRD guidelines.",
+          "status": "pending",
+          "dependsOn": ["6.2"]
+        }
+      ]
+    },
+    {
+      "id": "7",
+      "name": "Dynamic Trip Display Components",
+      "description": "Build the UI components that will display trip recommendations outside the chat interface. These components will be populated by both mock responses and later real AI responses.",
+      "status": "pending",
+      "dependsOn": ["2", "3"],
+      "phase": "phase1",
+      "subtasks": [
+        {
+          "id": "7.1",
+          "name": "Create TripCard Component",
+          "description": "Build reusable TripCard component displaying: destination name, duration, estimated cost, highlights array, and customization options. Include trip scoring indicator, save/favorite functionality, and click-to-select behavior. Style with cloud-white background and beach stone rounded corners.",
+          "status": "pending",
+          "dependsOn": []
+        },
+        {
+          "id": "7.2",
+          "name": "Build TripRecommendations Section",
+          "description": "Create responsive grid layout for displaying recommended trips: 1 column on mobile, 3 columns on desktop. Include section header, empty state message, loading skeletons, and smooth entry animations using Framer Motion. Position this section to appear below the chat interface.",
+          "status": "pending",
+          "dependsOn": ["7.1"]
+        },
+        {
+          "id": "7.3",
+          "name": "Implement Trip Detail Modal",
+          "description": "Create expandable trip detail view with complete itinerary, day-by-day planning, budget breakdown with visual charts, activity descriptions, and booking information. Use Radix UI Dialog component with tropical-themed styling and mobile-optimized layout.",
+          "status": "pending",
+          "dependsOn": ["7.2"]
+        }
+      ]
+    },
+    {
+      "id": "8",
+      "name": "State Management & Interactivity",
+      "description": "Implement React Context for global state management and connect all interactive elements. Enable the mock AI responses to update trip recommendations in real-time.",
+      "status": "pending",
+      "dependsOn": ["6", "7"],
+      "phase": "phase1",
+      "subtasks": [
+        {
+          "id": "8.1",
+          "name": "Create Travel Context Provider",
+          "description": "Implement React Context with AppState interface including: chatHistory, recommendedTrips, savedTrips, activeFilters, isAIProcessing, selectedTripId. Create context actions: updateRecommendations, selectTrip, saveTrip, and proper TypeScript typing.",
+          "status": "pending",
+          "dependsOn": []
+        },
+        {
+          "id": "8.2",
+          "name": "Connect Chat Interface to State",
+          "description": "Update ChatInterface component to use context: send messages through context actions, update chat history, trigger mock AI responses, and update recommended trips globally. Implement proper loading states and error handling.",
+          "status": "pending",
+          "dependsOn": ["8.1"]
+        },
+        {
+          "id": "8.3",
+          "name": "Connect Homepage Dynamic Updates",
+          "description": "Update Homepage component to reactively display AI recommendations section when trips are available. Implement smooth transitions and animations when new trips appear. Ensure proper responsive behavior and accessibility.",
+          "status": "pending",
+          "dependsOn": ["8.2"]
+        }
+      ]
+    },
+    {
+      "id": "9",
+      "name": "Mobile Optimization & Responsive Design",
+      "description": "Ensure perfect mobile experience across all components and interactions. Optimize touch targets, animations, and layout for mobile-first travel planning scenarios.",
+      "status": "pending",
+      "dependsOn": ["4", "5", "7", "8"],
+      "phase": "phase1",
+      "subtasks": [
+        {
+          "id": "9.1",
+          "name": "Optimize Tropical Animations for Mobile",
+          "description": "Implement responsive behavior for background illustrations: full scene on desktop (60vh), simplified scene on tablet (40vh), essential elements only on mobile (30vh). Respect prefers-reduced-motion for accessibility. Optimize animation performance for lower-powered devices.",
+          "status": "pending",
+          "dependsOn": []
+        },
+        {
+          "id": "9.2",
+          "name": "Mobile Chat Interface Optimization",
+          "description": "Optimize chat interface for mobile: proper viewport handling, touch-friendly input fields, swipe gestures, keyboard behavior, and message bubble sizing. Ensure chat remains usable with on-screen keyboard displayed.",
+          "status": "pending",
+          "dependsOn": ["9.1"]
+        },
+        {
+          "id": "9.3",
+          "name": "Trip Cards Mobile Layout",
+          "description": "Optimize trip recommendation cards for mobile: single column layout, thumb-friendly touch targets, swipe navigation between cards, and proper modal behavior on small screens. Test on various device sizes.",
+          "status": "pending",
+          "dependsOn": ["9.2"]
+        }
+      ]
+    },
+    {
+      "id": "10",
+      "name": "Performance & Polish Phase 1",
+      "description": "Optimize the static site for maximum performance and visual polish. Prepare for Phase 2 AI integration by ensuring solid foundation.",
+      "status": "pending",
+      "dependsOn": ["9"],
+      "phase": "phase1",
+      "subtasks": [
+        {
+          "id": "10.1",
+          "name": "Performance Optimization",
+          "description": "Optimize static site performance: image optimization, lazy loading for non-critical components, code splitting, and bundle analysis. Target Lighthouse score 95+ performance. Implement proper loading priorities and remove unused CSS.",
+          "status": "pending",
+          "dependsOn": []
+        },
+        {
+          "id": "10.2",
+          "name": "Accessibility & Polish",
+          "description": "Ensure WCAG compliance: proper alt text for illustrations, high contrast ratios, focus states for all interactive elements, keyboard navigation, and screen reader compatibility. Test with various accessibility tools.",
+          "status": "pending",
+          "dependsOn": ["10.1"]
+        },
+        {
+          "id": "10.3",
+          "name": "Cross-browser Testing & Bug Fixes",
+          "description": "Test across different browsers and devices, fix any visual inconsistencies, ensure animations work properly, and address any mobile-specific issues. Document known issues and prepare handoff notes for Phase 2.",
+          "status": "pending",
+          "dependsOn": ["10.2"]
+        }
+      ]
+    },
+    {
+      "id": "11",
+      "name": "AI Integration Setup",
+      "description": "Replace mock AI responses with real Google Gemini integration while maintaining the same UI behavior and response format.",
+      "status": "pending",
+      "dependsOn": ["10"],
+      "phase": "phase2",
+      "subtasks": [
+        {
+          "id": "11.1",
+          "name": "Configure Gemini API Integration",
+          "description": "Set up @ai-sdk/google integration with proper API key management via environment variables. Implement the enhanced system prompt from PRD lines 275-320 with JSON output format requirements. Create queryGeminiAI function that enforces structured responses.",
+          "status": "pending",
+          "dependsOn": []
+        },
+        {
+          "id": "11.2",
+          "name": "Implement JSON Response Parsing",
+          "description": "Create robust JSON parsing logic for Gemini responses. Handle malformed JSON gracefully with fallback to mock responses. Validate response structure against AITripResponse interface and ensure trip IDs match available mock data.",
+          "status": "pending",
+          "dependsOn": ["11.1"]
+        },
+        {
+          "id": "11.3",
+          "name": "Test AI Response Quality",
+          "description": "Test various user scenarios to ensure AI responses meet quality standards: budget sensitivity, family planning, destination variety, and follow-up questions. Fine-tune system prompt based on response quality and ensure consistent JSON output format.",
+          "status": "pending",
+          "dependsOn": ["11.2"]
+        }
+      ]
+    },
+    {
+      "id": "12",
+      "name": "Weather API Integration",
+      "description": "Add real weather data integration to provide authenticity for destination recommendations. This is the only real API beyond Gemini needed for the demo.",
+      "status": "pending",
+      "dependsOn": ["11"],
+      "phase": "phase2",
+      "subtasks": [
+        {
+          "id": "12.1",
+          "name": "Integrate OpenWeather API",
+          "description": "Set up OpenWeather API integration for basic weather data: current conditions and 5-day forecast for destination cities. Create weather service with error handling and caching. Store API key in environment variables.",
+          "status": "pending",
+          "dependsOn": []
+        },
+        {
+          "id": "12.2",
+          "name": "Update Gemini System Prompt with Weather",
+          "description": "Modify system prompt to include current weather data in CURRENT_WEATHER_DATA section. Update AI responses to consider weather conditions in destination recommendations and activity suggestions.",
+          "status": "pending",
+          "dependsOn": ["12.1"]
+        },
+        {
+          "id": "12.3",
+          "name": "Display Weather in Trip Cards",
+          "description": "Add weather information to trip recommendation cards: current conditions icon, temperature, and short forecast. Style consistently with tropical theme and ensure mobile responsiveness.",
+          "status": "pending",
+          "dependsOn": ["12.2"]
+        }
+      ]
+    },
+    {
+      "id": "13",
+      "name": "Security & Rate Limiting Implementation",
+      "description": "Implement essential security measures and rate limiting to protect against abuse while maintaining good user experience.",
+      "status": "pending",
+      "dependsOn": ["11"],
+      "phase": "phase2",
+      "subtasks": [
+        {
+          "id": "13.1",
+          "name": "Implement Basic Security Checks",
+          "description": "Create security pipeline with input validation (length limits 1000 chars), basic prompt injection detection (forbidden patterns: 'ignore previous', 'system:', 'assistant:'), and content sanitization. Follow the processUserInput example from PRD lines 392-404.",
+          "status": "pending",
+          "dependsOn": []
+        },
+        {
+          "id": "13.2",
+          "name": "Add IP-based Rate Limiting",
+          "description": "Implement simple rate limiting: 5 sessions per day per IP address, 2500 tokens per session, daily reset at midnight UTC. Use browser sessionStorage for client-side tracking and server-side validation. Show user-friendly messages when limits reached.",
+          "status": "pending",
+          "dependsOn": ["13.1"]
+        },
+        {
+          "id": "13.3",
+          "name": "Implement Cost Controls",
+          "description": "Add daily spend cap of $5 with automatic circuit breaker. Track API usage and token consumption. Implement graceful fallback to mock responses when limits exceeded. Add basic console logging for monitoring usage patterns.",
+          "status": "pending",
+          "dependsOn": ["13.2"]
+        }
+      ]
+    },
+    {
+      "id": "14",
+      "name": "Error Handling & Fallback Systems",
+      "description": "Implement comprehensive error handling and fallback systems to ensure the application always provides value to users even when APIs fail.",
+      "status": "pending",
+      "dependsOn": ["13"],
+      "phase": "phase2",
+      "subtasks": [
+        {
+          "id": "14.1",
+          "name": "Create Error Boundary Components",
+          "description": "Implement React Error Boundaries for AI integration, weather API, and chat interface. Create user-friendly error messages with tropical-themed styling. Provide clear recovery options and maintain application state.",
+          "status": "pending",
+          "dependsOn": []
+        },
+        {
+          "id": "14.2",
+          "name": "Implement API Failure Fallbacks",
+          "description": "Create fallback logic for Gemini API failures: automatically switch to sophisticated mock responses, maintain conversation flow, and inform users gracefully. Ensure fallback responses match the same quality and format as AI responses.",
+          "status": "pending",
+          "dependsOn": ["14.1"]
+        },
+        {
+          "id": "14.3",
+          "name": "Add Retry Logic & Recovery",
+          "description": "Implement intelligent retry logic for API failures with exponential backoff. Create recovery mechanisms for partial failures and network issues. Ensure users can continue their conversation seamlessly after errors.",
+          "status": "pending",
+          "dependsOn": ["14.2"]
+        }
+      ]
+    },
+    {
+      "id": "15",
+      "name": "Production Deployment",
+      "description": "Deploy the application to Vercel with proper environment configuration and monitoring. Ensure production-ready performance and reliability.",
+      "status": "pending",
+      "dependsOn": ["14"],
+      "phase": "phase2",
+      "subtasks": [
+        {
+          "id": "15.1",
+          "name": "Configure Vercel Deployment",
+          "description": "Set up Vercel project with environment variables for GOOGLE_GENERATIVE_AI_API_KEY, NEXT_PUBLIC_APP_URL, and OPENWEATHER_API_KEY. Configure build settings, domain, and deployment previews. Test deployment pipeline.",
+          "status": "pending",
+          "dependsOn": []
+        },
+        {
+          "id": "15.2",
+          "name": "Production Performance Optimization",
+          "description": "Optimize for production: enable Next.js image optimization, implement proper caching headers, minimize bundle size, and ensure fast loading times. Test Core Web Vitals and optimize based on real-world performance data.",
+          "status": "pending",
+          "dependsOn": ["15.1"]
+        },
+        {
+          "id": "15.3",
+          "name": "Monitor & Test Production Environment",
+          "description": "Test all functionality in production environment: AI responses, weather integration, rate limiting, error handling, and mobile performance. Verify analytics tracking and ensure all features work correctly with production data.",
+          "status": "pending",
+          "dependsOn": ["15.2"]
+        }
+      ]
+    },
+    {
+      "id": "16",
+      "name": "Documentation & Final Polish",
+      "description": "Complete project documentation, create setup guides, and add final polish for portfolio presentation.",
+      "status": "pending",
+      "dependsOn": ["15"],
+      "phase": "phase2",
+      "subtasks": [
+        {
+          "id": "16.1",
+          "name": "Create README Documentation",
+          "description": "Write comprehensive README.md with project overview, setup instructions, environment variables guide, development workflow, and deployment instructions. Include screenshots and demo links.",
+          "status": "pending",
+          "dependsOn": []
+        },
+        {
+          "id": "16.2",
+          "name": "Add Portfolio Attribution",
+          "description": "Implement tasteful developer attribution in footer and about section. Add links to GitHub repository, portfolio website, and contact information. Include demo transparency notice and project showcase elements.",
+          "status": "pending",
+          "dependsOn": ["16.1"]
+        },
+        {
+          "id": "16.3",
+          "name": "Final Testing & Demo Preparation",
+          "description": "Conduct comprehensive testing across all devices and browsers. Prepare demo scenarios for portfolio presentation. Create test cases that showcase AI capabilities, design quality, and technical implementation. Document known limitations and future enhancement opportunities.",
+          "status": "pending",
+          "dependsOn": ["16.2"]
+        }
+      ]
+    }
+  ]
+}

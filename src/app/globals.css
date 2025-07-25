@@ -1,15 +1,85 @@
 @import "tailwindcss";
 
 :root {
+  /* Base colors */
   --background: #ffffff;
   --foreground: #171717;
+  
+  /* Tropical Color Palette - Sky & Ocean Blues */
+  --sky-light: #E0F2FE;
+  --sky-medium: #7DD3FC;
+  --ocean-blue: #0EA5E9;
+  --deep-blue: #0284C7;
+  
+  /* Warm Sunset Colors */
+  --sunset-orange: #FB923C;
+  --sunset-pink: #F472B6;
+  --warm-yellow: #FBBF24;
+  
+  /* Nature Greens */
+  --palm-green: #34D399;
+  --grass-green: #10B981;
+  
+  /* Sand & Neutrals */
+  --sand-light: #FEF3C7;
+  --sand-medium: #F59E0B;
+  --cloud-white: #FFFFFF;
+  --soft-gray: #6B7280;
 }
 
 @theme inline {
+  /* Base system colors */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  
+  /* Typography */
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  
+  /* Tropical Color System */
+  --color-sky-50: var(--sky-light);
+  --color-sky-300: var(--sky-medium);
+  --color-sky-500: var(--ocean-blue);
+  --color-sky-600: var(--deep-blue);
+  
+  --color-orange-400: var(--sunset-orange);
+  --color-pink-400: var(--sunset-pink);
+  --color-yellow-400: var(--warm-yellow);
+  
+  --color-emerald-400: var(--palm-green);
+  --color-emerald-500: var(--grass-green);
+  
+  --color-amber-50: var(--sand-light);
+  --color-amber-600: var(--sand-medium);
+  --color-white: var(--cloud-white);
+  --color-gray-500: var(--soft-gray);
+  
+  /* Custom tropical colors */
+  --color-tropical-sky: var(--sky-light);
+  --color-tropical-ocean: var(--ocean-blue);
+  --color-tropical-sunset: var(--sunset-orange);
+  --color-tropical-palm: var(--palm-green);
+  --color-tropical-sand: var(--sand-light);
+  
+  /* Rounded design language */
+  --radius-sm: 0.5rem;
+  --radius: 1rem;
+  --radius-md: 1rem;
+  --radius-lg: 1.5rem;
+  --radius-xl: 2rem;
+  
+  /* Beach-like generous spacing */
+  --spacing-xs: 0.5rem;
+  --spacing-sm: 1rem;
+  --spacing-md: 1.5rem;
+  --spacing-lg: 3rem;
+  --spacing-xl: 6rem;
+  
+  /* Animation durations */
+  --animate-cloud-drift: 25s;
+  --animate-palm-sway: 5s;
+  --animate-wave-motion: 3s;
+  --animate-button-press: 0.2s;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -22,5 +92,57 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+}
+
+/* Animation keyframes for tropical elements */
+@keyframes cloudDrift {
+  0% { transform: translateX(-100px); }
+  100% { transform: translateX(100vw); }
+}
+
+@keyframes palmSway {
+  0%, 100% { transform: rotate(-2deg); }
+  50% { transform: rotate(2deg); }
+}
+
+@keyframes waveMotion {
+  0%, 100% { transform: translateY(0px) scaleY(1); }
+  50% { transform: translateY(-3px) scaleY(1.05); }
+}
+
+@keyframes buttonPress {
+  0% { transform: scale(1); }
+  50% { transform: scale(0.98); }
+  100% { transform: scale(1); }
+}
+
+/* Animation classes */
+.animate-cloud-drift {
+  animation: cloudDrift var(--animate-cloud-drift) linear infinite;
+}
+
+.animate-palm-sway {
+  animation: palmSway var(--animate-palm-sway) ease-in-out infinite;
+}
+
+.animate-wave-motion {
+  animation: waveMotion var(--animate-wave-motion) ease-in-out infinite;
+}
+
+.animate-button-press {
+  animation: buttonPress var(--animate-button-press) ease-out;
+}
+
+/* Utility classes for tropical styling */
+.tropical-gradient {
+  background: linear-gradient(180deg, var(--ocean-blue) 0%, var(--sky-medium) 30%, var(--sky-light) 70%, var(--sand-light) 100%);
+}
+
+.tropical-shadow {
+  box-shadow: 0 4px 6px -1px rgba(14, 165, 233, 0.1), 0 2px 4px -1px rgba(14, 165, 233, 0.06);
+}
+
+.tropical-shadow-lg {
+  box-shadow: 0 10px 15px -3px rgba(14, 165, 233, 0.1), 0 4px 6px -2px rgba(14, 165, 233, 0.05);
 }
