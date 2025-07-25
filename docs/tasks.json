@@ -179,7 +179,7 @@
       "id": "6",
       "name": "Homepage AI Integration Infrastructure",
       "description": "Build UI components and data structures needed for real AI integration. Focus on conversation flow, state management, and response display system with minimal placeholder logic that's easy to replace in Phase 2.",
-      "status": "pending",
+      "status": "done",
       "dependsOn": ["3"],
       "phase": "phase1",
       "subtasks": [
@@ -187,21 +187,21 @@
           "id": "6.1",
           "name": "Build Homepage Conversation UI Components",
           "description": "Create conversation flow interface components: proper loading states, response transitions, and input handling. Build reusable UI components that will integrate with real AI in Phase 2. Focus on user experience and visual polish.",
-          "status": "pending",
+          "status": "done",
           "dependsOn": []
         },
         {
           "id": "6.2",
           "name": "Set Up AI Response Data Structures",
           "description": "Define TypeScript interfaces and state management for AI responses. Create proper data flow, context providers, and integration hooks that real AI will use. Ensure type safety and proper architecture for Phase 2 integration.",
-          "status": "pending",
+          "status": "done",
           "dependsOn": ["6.1"]
         },
         {
           "id": "6.3",
           "name": "Add Minimal Placeholder System",
           "description": "Create simple placeholder responses clearly marked with '// TODO: REMOVE IN PHASE 2'. Use static text like 'Analyzing your request...' with obvious markers for replacement. Keep logic minimal and easy to identify for removal.",
-          "status": "pending",
+          "status": "done",
           "dependsOn": ["6.2"]
         }
       ]
