@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { MessageBubble } from "./MessageBubble"
 import { MessageInput } from "./MessageInput"
-import { LoadingSpinner } from "./LoadingSpinner"
+import { LoadingSpinner } from "@/components/conversation"
 import { mockConversations, ConversationType } from "@/lib/mock-conversations"
 
 interface Message {

@@ -116,12 +116,6 @@ class ConversationServiceImpl implements ConversationService {
       // Determine if this is the first message (no prior AI responses)
       const aiMessages = conversationHistory.filter(msg => msg.type === 'ai')
       const isFirstMessage = aiMessages.length === 0
-      console.log('=== CONVERSATION DEBUG ===')
-      console.log('Input:', input)
-      console.log('Total history:', conversationHistory.length)
-      console.log('AI messages in history:', aiMessages.length)
-      console.log('Is first message:', isFirstMessage)
-      console.log('Full history:', conversationHistory)
 
       // TODO: REMOVE IN PHASE 2 - Replace with real AI call
       const responseMessage = await generatePlaceholderResponse(input, isFirstMessage)
@@ -130,7 +124,6 @@ class ConversationServiceImpl implements ConversationService {
       let mockTrips: TripRecommendation[] = []
       if (!isFirstMessage) {
         mockTrips = generateMockTrips()
-        console.log('Generated mock trips for second response:', mockTrips) // Debug logging
       }
 
       return {

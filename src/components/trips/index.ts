@@ -6,3 +6,4 @@
 export { TripCard } from './TripCard'
 export { TripRecommendations } from './TripRecommendations'
 export { TripDetailModal } from './TripDetailModal'
+export { InlineTripCard } from './InlineTripCard'
