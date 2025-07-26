@@ -142,14 +142,30 @@ export default function HomePage() {
           <ScrollArea ref={scrollAreaRef} className="h-full px-4">
             <div className="mx-auto max-w-4xl w-full h-full flex flex-col justify-end">
               <div className="space-y-6 py-8 pb-32">
-                {/* Display AI Messages */}
+                {/* Display All Chat Messages */}
                 {travelState.chatHistory
-                  .filter(msg => msg.role === 'assistant')
-                  .map((message, index) => (
+                  .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
+                  .map((message) => (
                     <div key={message.id} className="mb-6">
-                      <div className="bg-white/95 backdrop-blur rounded-2xl p-6 shadow-lg border border-white/20">
-                        <p className="text-lg text-gray-800">{message.content}</p>
-                      </div>
+                      {message.role === 'user' ? (
+                        /* User Message Bubble */
+                        <div className="flex justify-end">
+                          <div className="max-w-[80%] md:max-w-[70%]">
+                            <div className="bg-sky-100/95 backdrop-blur rounded-2xl p-6 shadow-lg border border-sky-200/20 chat-bubble-user">
+                              <p className="text-lg text-gray-800">{message.content}</p>
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        /* AI Message Bubble */
+                        <div className="flex justify-start">
+                          <div className="max-w-[80%] md:max-w-[70%]">
+                            <div className="bg-white/95 backdrop-blur rounded-2xl p-6 shadow-lg border border-white/20 chat-bubble-ai">
+                              <p className="text-lg text-gray-800">{message.content}</p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   ))}
 

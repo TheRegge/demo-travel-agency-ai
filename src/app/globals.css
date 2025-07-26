@@ -158,6 +158,39 @@ body {
   background: linear-gradient(180deg, var(--ocean-blue) 0%, var(--sky-medium) 40%, transparent 100%);
 }
 
+/* Chat bubble styling */
+.chat-bubble-user {
+  position: relative;
+}
+
+.chat-bubble-user::after {
+  content: '';
+  position: absolute;
+  right: -8px;
+  top: 16px;
+  width: 0;
+  height: 0;
+  border-left: 8px solid rgb(224 242 254 / 0.95);
+  border-top: 8px solid transparent;
+  border-bottom: 8px solid transparent;
+}
+
+.chat-bubble-ai {
+  position: relative;
+}
+
+.chat-bubble-ai::after {
+  content: '';
+  position: absolute;
+  left: -8px;
+  top: 16px;
+  width: 0;
+  height: 0;
+  border-right: 8px solid rgb(255 255 255 / 0.95);
+  border-top: 8px solid transparent;
+  border-bottom: 8px solid transparent;
+}
+
 .tropical-shadow {
   box-shadow: 0 4px 6px -1px rgba(14, 165, 233, 0.1), 0 2px 4px -1px rgba(14, 165, 233, 0.06);
 }
