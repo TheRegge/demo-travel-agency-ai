@@ -34,15 +34,38 @@ export default function HomePage() {
     }
   }
 
-  // Auto-scroll to bottom when new messages are added
+  // Intelligent auto-scroll that keeps AI messages visible
   useEffect(() => {
     if (scrollAreaRef.current && travelState.chatHistory.length > 0) {
       const scrollElement = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]')
       if (scrollElement) {
-        scrollElement.scrollTop = scrollElement.scrollHeight
+        // Get the last AI message element to ensure it stays visible
+        const lastMessage = travelState.chatHistory[travelState.chatHistory.length - 1]
+        
+        if (lastMessage?.role === 'assistant') {
+          // For AI messages, scroll more gently to keep the message visible
+          // Use smooth scrolling and don't go all the way to bottom
+          const scrollHeight = scrollElement.scrollHeight
+          const clientHeight = scrollElement.clientHeight
+          const maxScroll = scrollHeight - clientHeight
+          
+          // Scroll to show most of the content but leave some buffer
+          const targetScroll = Math.max(0, maxScroll - 100) // 100px buffer from bottom
+          
+          scrollElement.scrollTo({
+            top: targetScroll,
+            behavior: 'smooth'
+          })
+        } else {
+          // For user messages, scroll to bottom as usual
+          scrollElement.scrollTo({
+            top: scrollElement.scrollHeight,
+            behavior: 'smooth'
+          })
+        }
       }
     }
-  }, [travelState.chatHistory.length, travelState.recommendedTrips.length])
+  }, [travelState.chatHistory.length, travelState.recommendedTrips.length, travelState.chatHistory])
 
   // TEMPORARY: Static mock trips for visual testing
   const mockTripsForTesting = [
