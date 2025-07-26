@@ -79,6 +79,10 @@ export function convertToTripRecommendation(
     duration,
     estimatedCost: totalCost,
     highlights: destination.activities.slice(0, 3).map(activity => activity.name),
+    description: destination.description,
+    activities: destination.activities.slice(0, 5).map(activity => activity.name),
+    season: season,
+    kidFriendly: destination.kidFriendlyScore >= 7,
     customizations: {
       hotelType: totalCost > 4000 ? 'luxury' : totalCost > 2000 ? 'standard' : 'budget',
       activities: destination.activities.slice(0, 2).map(activity => activity.name)

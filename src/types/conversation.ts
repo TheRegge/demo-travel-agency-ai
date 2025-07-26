@@ -3,6 +3,8 @@
  * These interfaces are designed to work with both placeholder and real AI systems
  */
 
+import { TripRecommendation } from './travel'
+
 // Core conversation types
 export interface ConversationMessage {
   id: string
@@ -30,18 +32,7 @@ export interface AIResponse {
   error?: string
 }
 
-// Trip recommendation types (matches existing mock data structure)
-export interface TripRecommendation {
-  tripId: string
-  destination: string
-  duration: number
-  estimatedCost: number
-  highlights: string[]
-  description: string
-  activities: string[]
-  season: string
-  kidFriendly: boolean
-}
+// TripRecommendation is imported from './travel' at the top
 
 // Service interfaces
 export interface ConversationService {
@@ -102,4 +93,52 @@ export interface ConversationErrorState {
   type: ConversationError
   message: string
   retryable: boolean
+}
+
+// Trip component interfaces
+export interface TripCardProps {
+  trip: TripRecommendation
+  onSelect?: (trip: TripRecommendation) => void
+  onSave?: ((tripId: string) => void) | undefined
+  isSaved?: boolean
+}
+
+export interface TripRecommendationsProps {
+  trips: TripRecommendation[]
+  onTripSelect?: (trip: TripRecommendation) => void
+  onTripSave?: (tripId: string) => void
+  savedTripIds?: string[]
+  isLoading?: boolean
+}
+
+export interface TripDetailModalProps {
+  trip: TripRecommendation | null
+  isOpen: boolean
+  onClose: () => void
+  onSave?: (tripId: string) => void
+  isSaved?: boolean
+}
+
+// Trip detail interfaces
+export interface TripItinerary {
+  day: number
+  title: string
+  activities: string[]
+  meals: string[]
+  accommodation?: string
+}
+
+export interface TripBudgetBreakdown {
+  category: string
+  amount: number
+  description: string
+}
+
+export interface ExtendedTripRecommendation extends TripRecommendation {
+  itinerary?: TripItinerary[]
+  budgetBreakdown?: TripBudgetBreakdown[]
+  images?: string[]
+  weatherInfo?: string
+  bestTimeToVisit?: string
+  travelTips?: string[]
 }

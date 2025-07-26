@@ -210,7 +210,7 @@
       "id": "7",
       "name": "Homepage Trip Display Components",
       "description": "Build UI components that display trip recommendations integrated with the homepage conversation flow. Components appear below the conversation area and update dynamically based on AI responses.",
-      "status": "pending",
+      "status": "done",
       "dependsOn": ["2", "3"],
       "phase": "phase1",
       "subtasks": [
@@ -218,21 +218,21 @@
           "id": "7.1",
           "name": "Create TripCard Component",
           "description": "Build reusable TripCard component displaying: destination name, duration, estimated cost, highlights array, and customization options. Include trip scoring indicator, save/favorite functionality, and click-to-select behavior. Style with cloud-white background and beach stone rounded corners.",
-          "status": "pending",
+          "status": "done",
           "dependsOn": []
         },
         {
           "id": "7.2",
           "name": "Build Homepage Trip Recommendations Section",
           "description": "Create responsive grid layout for displaying recommended trips below the homepage conversation area: 1 column on mobile, 3 columns on desktop. Include smooth entry animations and integrate seamlessly with the homepage tropical theme.",
-          "status": "pending",
+          "status": "done",
           "dependsOn": ["7.1"]
         },
         {
           "id": "7.3",
           "name": "Implement Trip Detail Modal",
           "description": "Create expandable trip detail view with complete itinerary, day-by-day planning, budget breakdown with visual charts, activity descriptions, and booking information. Use Radix UI Dialog component with tropical-themed styling and mobile-optimized layout.",
-          "status": "pending",
+          "status": "done",
           "dependsOn": ["7.2"]
         }
       ]

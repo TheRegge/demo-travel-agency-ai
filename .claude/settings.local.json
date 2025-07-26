@@ -4,7 +4,10 @@
       "Bash(mkdir:*)",
       "Bash(npm run type-check:*)",
       "Bash(grep:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "mcp__Ref__ref_read_url",
+      "Bash(npx shadcn@latest add dialog)",
+      "Bash(npx shadcn-ui:*)"
     ],
     "deny": []
   }

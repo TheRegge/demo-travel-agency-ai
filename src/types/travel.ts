@@ -6,6 +6,10 @@ export interface TripRecommendation {
   duration: number // Days  
   estimatedCost: number
   highlights: string[]
+  description: string
+  activities: string[]
+  season: string
+  kidFriendly: boolean
   customizations: {
     departureDate?: string
     hotelType?: "budget" | "standard" | "luxury"

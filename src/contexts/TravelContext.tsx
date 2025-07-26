@@ -60,6 +60,7 @@ function travelReducer(state: AppState, action: TravelAction): AppState {
       }
     
     case "UPDATE_RECOMMENDATIONS":
+      console.log('TravelContext: UPDATE_RECOMMENDATIONS called with:', action.payload)
       return {
         ...state,
         recommendedTrips: action.payload,

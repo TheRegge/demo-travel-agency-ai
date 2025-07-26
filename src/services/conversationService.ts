@@ -8,19 +8,20 @@
 import { 
   AIResponse, 
   ConversationService, 
-  ValidationResult,
-  ConversationError
+  ValidationResult
 } from '@/types/conversation'
+import { TripRecommendation } from '@/types/travel'
+import { mockDestinations } from '@/lib/mock-data/destinations'
 
-// TODO: REMOVE IN PHASE 2 - Simple placeholder responses
-const PLACEHOLDER_RESPONSES = [
-  "Great choice! I'd love to help you plan your dream trip. Based on what you've told me, I can already see some amazing possibilities. Let me gather some personalized recommendations that match your budget, style, and preferences.",
+// TODO: REMOVE IN PHASE 2 - Two-step conversation responses
+const FIRST_RESPONSE = "That sounds like an incredible adventure! I'm analyzing your preferences and checking the best options available. What specific aspects of your trip are most important to you - the activities, accommodations, or perhaps the local culture?"
+
+const SECOND_RESPONSES = [
+  "Perfect! Based on your preferences, I've found some amazing destinations that match exactly what you're looking for. Here are my top recommendations:",
   
-  "That sounds like an incredible adventure! I'm analyzing your preferences and checking the best options available. What specific aspects of your trip are most important to you - the activities, accommodations, or perhaps the local culture?",
+  "Excellent! I've analyzed your requirements and found some incredible options. These destinations offer exactly the kind of experience you're seeking:",
   
-  "Wonderful! I can see you have excellent taste in destinations. I'm currently researching the perfect itinerary that balances your interests with practical considerations. Would you like me to focus on budget-friendly options or premium experiences?",
-  
-  "Exciting! Your travel dreams are coming together beautifully. I'm gathering information about the best times to visit, local attractions, and accommodation options that match your style. What's your flexibility with travel dates?"
+  "Wonderful! Your travel style is coming together beautifully. I've curated these perfect matches for your dream adventure:"
 ]
 
 /**
@@ -50,15 +51,45 @@ const validateInput = (input: string): ValidationResult => {
 
 /**
  * TODO: REMOVE IN PHASE 2 - Replace with real AI service
- * Simple placeholder response generator
+ * Two-step conversation response generator
  */
-const generatePlaceholderResponse = async (input: string): Promise<string> => {
+const generatePlaceholderResponse = async (_input: string, isFirstMessage: boolean): Promise<string> => {
   // Simulate AI processing time
   await new Promise(resolve => setTimeout(resolve, 1500 + Math.random() * 1000))
   
-  // Return a random placeholder response
-  const randomIndex = Math.floor(Math.random() * PLACEHOLDER_RESPONSES.length)
-  return PLACEHOLDER_RESPONSES[randomIndex]
+  if (isFirstMessage) {
+    return FIRST_RESPONSE
+  } else {
+    // Return a random second response
+    const randomIndex = Math.floor(Math.random() * SECOND_RESPONSES.length)
+    return SECOND_RESPONSES[randomIndex] || "Perfect! Here are my recommendations:"
+  }
+}
+
+/**
+ * TODO: REMOVE IN PHASE 2 - Replace with real AI trip generation
+ * Generate mock trip recommendations based on user input
+ */
+const generateMockTrips = (_input: string): TripRecommendation[] => {
+  // Simple keyword-based trip selection (TODO: implement actual keyword matching in Phase 2)
+  const selectedDestinations = mockDestinations.slice(0, 3) // Get first 3 destinations
+  
+  return selectedDestinations.map((destination, index) => ({
+    tripId: `trip-${destination.id}-${Date.now()}-${index}`,
+    destination: destination.name,
+    duration: 5 + Math.floor(Math.random() * 5), // 5-9 days
+    estimatedCost: destination.seasonalPricing.shoulder + Math.floor(Math.random() * 500),
+    highlights: destination.activities.slice(0, 3).map(activity => activity.name),
+    description: destination.description,
+    activities: destination.activities.slice(0, 5).map(activity => activity.name),
+    season: "spring",
+    kidFriendly: destination.kidFriendlyScore > 7,
+    customizations: {
+      hotelType: "standard" as const,
+      activities: destination.activities.slice(0, 3).map(activity => activity.name)
+    },
+    score: 75 + Math.floor(Math.random() * 25) // 75-100 score
+  }))
 }
 
 /**
@@ -70,32 +101,48 @@ class ConversationServiceImpl implements ConversationService {
    * Get AI response for user input
    * TODO: REMOVE IN PHASE 2 - Replace with real Gemini AI call
    */
-  async getResponse(input: string): Promise<AIResponse> {
+  async getResponse(input: string, conversationHistory: any[] = []): Promise<AIResponse> {
     try {
       // Validate input
       const validation = this.validateInput(input)
       if (!validation.isValid) {
         return {
           success: false,
-          message: validation.errors[0],
+          message: validation.errors[0] || 'Invalid input provided',
           error: 'INVALID_INPUT'
         }
       }
 
+      // Determine if this is the first message (no prior AI responses)
+      const aiMessages = conversationHistory.filter(msg => msg.type === 'ai')
+      const isFirstMessage = aiMessages.length === 0
+      console.log('=== CONVERSATION DEBUG ===')
+      console.log('Input:', input)
+      console.log('Total history:', conversationHistory.length)
+      console.log('AI messages in history:', aiMessages.length)
+      console.log('Is first message:', isFirstMessage)
+      console.log('Full history:', conversationHistory)
+
       // TODO: REMOVE IN PHASE 2 - Replace with real AI call
-      const responseMessage = await generatePlaceholderResponse(input)
+      const responseMessage = await generatePlaceholderResponse(input, isFirstMessage)
+
+      // Only generate trip recommendations on second response
+      let mockTrips: TripRecommendation[] = []
+      if (!isFirstMessage) {
+        mockTrips = generateMockTrips(input)
+        console.log('Generated mock trips for second response:', mockTrips) // Debug logging
+      }
 
       return {
         success: true,
         message: responseMessage,
         data: {
-          // TODO: REMOVE IN PHASE 2 - Add real trip recommendations
-          recommendations: [],
-          followUpQuestions: [
+          recommendations: mockTrips,
+          followUpQuestions: isFirstMessage ? [
             "What's your ideal travel budget?",
-            "Are you traveling with family or friends?",
+            "Are you traveling with family or friends?", 
             "Do you prefer adventure or relaxation?"
-          ]
+          ] : []
         }
       }
 

@@ -68,8 +68,6 @@ export function TropicalBackground({
         <PalmTrees animate={animate} className="z-30" />
       )}
       
-      {/* Overlay for content readability */}
-      <div className="absolute inset-0 bg-white/20 z-40" />
     </div>
   )
 }

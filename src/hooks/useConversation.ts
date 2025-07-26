@@ -5,6 +5,7 @@
 
 import { useState, useCallback } from 'react'
 import { conversationService } from '@/services/conversationService'
+import { useTravelContext } from '@/contexts/TravelContext'
 import { 
   ConversationState, 
   UseConversationReturn,
@@ -21,6 +22,7 @@ const INITIAL_STATE: ConversationState = {
 
 export const useConversation = (): UseConversationReturn => {
   const [state, setState] = useState<ConversationState>(INITIAL_STATE)
+  const { actions: travelActions } = useTravelContext()
 
   /**
    * Submit a message to the AI service
@@ -28,15 +30,16 @@ export const useConversation = (): UseConversationReturn => {
   const submitMessage = useCallback(async (message: string) => {
     if (!message.trim()) return
 
-    // Set loading state
+    // Set loading state in both local and global context
     setState(prev => ({
       ...prev,
       isLoading: true,
       error: null,
       userInput: ''
     }))
+    travelActions.setIsTyping(true)
 
-    // Add user message to conversation
+    // Add user message to both contexts
     const userMessage: ConversationMessage = {
       id: `user-${Date.now()}`,
       content: message,
@@ -49,9 +52,14 @@ export const useConversation = (): UseConversationReturn => {
       messages: [...prev.messages, userMessage]
     }))
 
+    travelActions.addMessage({
+      role: 'user',
+      content: message
+    })
+
     try {
-      // Get AI response
-      const response = await conversationService.getResponse(message)
+      // Get AI response, passing conversation history
+      const response = await conversationService.getResponse(message, state.messages)
 
       if (response.success) {
         // Add AI message to conversation
@@ -67,27 +75,52 @@ export const useConversation = (): UseConversationReturn => {
           isLoading: false,
           currentResponse: response.message,
           messages: [...prev.messages, aiMessage],
-          error: null
+          error: null,
+          userInput: '' // Ensure input stays cleared
         }))
+
+        // Add AI message to global context
+        travelActions.addMessage({
+          role: 'assistant',
+          content: response.message
+        })
+
+        // Update trip recommendations immediately if available (only on second response)
+        if (response.data?.recommendations && response.data.recommendations.length > 0) {
+          console.log('Updating travel recommendations:', response.data.recommendations) // Debug logging
+          travelActions.updateRecommendations(response.data.recommendations)
+        } else {
+          console.log('No recommendations in response (likely first message):', response.data) // Debug logging
+        }
+
+        travelActions.setIsTyping(false)
       } else {
         // Handle error response
         setState(prev => ({
           ...prev,
           isLoading: false,
           error: response.message || 'Something went wrong. Please try again.',
-          currentResponse: ''
+          currentResponse: '',
+          userInput: '' // Ensure input stays cleared
         }))
+        travelActions.setIsTyping(false)
+        travelActions.setError(response.message || 'Something went wrong. Please try again.')
       }
     } catch (error) {
       console.error('Error submitting message:', error)
+      const errorMessage = 'Unable to process your request. Please check your connection and try again.'
+      
       setState(prev => ({
         ...prev,
         isLoading: false,
-        error: 'Unable to process your request. Please check your connection and try again.',
-        currentResponse: ''
+        error: errorMessage,
+        currentResponse: '',
+        userInput: '' // Ensure input stays cleared
       }))
+      travelActions.setIsTyping(false)
+      travelActions.setError(errorMessage)
     }
-  }, [])
+  }, [travelActions])
 
   /**
    * Clear the conversation
