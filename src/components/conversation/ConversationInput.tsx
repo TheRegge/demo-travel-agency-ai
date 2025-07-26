@@ -64,7 +64,7 @@ export const ConversationInput = ({
           className="absolute bottom-4 right-4 sm:bottom-6 sm:right-6 md:bottom-8 md:right-8 w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-sky-500 to-emerald-500 hover:from-sky-600 hover:to-emerald-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-full shadow-lg transition-all duration-200 transform hover:scale-105 disabled:hover:scale-100 flex items-center justify-center"
         >
           <svg
-            className="w-5 h-5 sm:w-6 sm:h-6 transform -rotate-90"
+            className="w-5 h-5 sm:w-6 sm:h-6 transform -rotate-45 translate-0.25 -translate-y-0.25"
             fill="currentColor"
             viewBox="0 0 24 24"
           >
