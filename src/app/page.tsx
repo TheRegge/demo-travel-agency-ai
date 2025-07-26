@@ -34,50 +34,57 @@ export default function HomePage() {
     }
   }
 
-  // Intelligent auto-scroll that keeps AI messages visible
+  // Intelligent auto-scroll that targets specific AI messages
   useEffect(() => {
     if (scrollAreaRef.current && travelState.chatHistory.length > 0) {
       const scrollElement = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]')
       if (scrollElement) {
-        // Get the last AI message element to ensure it stays visible
         const lastMessage = travelState.chatHistory[travelState.chatHistory.length - 1]
 
-        if (lastMessage?.role === 'assistant') {
-          // For AI messages, scroll more gently to keep the message visible
-          // Use smooth scrolling and don't go all the way to bottom
-          const scrollHeight = scrollElement.scrollHeight
-          const clientHeight = scrollElement.clientHeight
-          const maxScroll = scrollHeight - clientHeight
-
-          // Responsive buffer: larger on mobile due to input taking more relative space
-          const isMobile = window.innerWidth < 768
-          const buffer = isMobile ? 250 : 100 // Increased mobile buffer to 250px
-          const targetScroll = Math.max(0, maxScroll - buffer)
-
-          console.log('Auto-scroll debug:', {
-            isMobile,
-            windowWidth: window.innerWidth,
-            scrollHeight,
-            clientHeight,
-            maxScroll,
-            buffer,
-            targetScroll
-          })
-
-          scrollElement.scrollTo({
-            top: targetScroll,
-            behavior: 'smooth'
-          })
-        } else {
-          // For user messages, scroll to bottom as usual
-          scrollElement.scrollTo({
-            top: scrollElement.scrollHeight,
-            behavior: 'smooth'
-          })
-        }
+        // Use requestAnimationFrame to ensure DOM is updated
+        requestAnimationFrame(() => {
+          if (lastMessage?.role === 'assistant') {
+            // Find the actual AI message element in the DOM
+            const messageElement = document.querySelector(`[data-message-id="${lastMessage.id}"]`)
+            
+            if (messageElement) {
+              // Responsive positioning: mobile shows beginning, desktop shows more context
+              const isMobile = window.innerWidth < 768
+              
+              console.log('Auto-scroll targeting message:', lastMessage.id, 'isMobile:', isMobile)
+              
+              // Scroll to the AI message with responsive positioning
+              messageElement.scrollIntoView({
+                behavior: 'smooth',
+                block: isMobile ? 'start' : 'center', // Mobile: top 20%, Desktop: center 50%
+                inline: 'nearest'
+              })
+            } else {
+              // Fallback to old buffer method if DOM targeting fails
+              console.log('Fallback to buffer scroll for message:', lastMessage.id)
+              const scrollHeight = scrollElement.scrollHeight
+              const clientHeight = scrollElement.clientHeight
+              const maxScroll = scrollHeight - clientHeight
+              const isMobile = window.innerWidth < 768
+              const buffer = isMobile ? 250 : 100
+              const targetScroll = Math.max(0, maxScroll - buffer)
+              
+              scrollElement.scrollTo({
+                top: targetScroll,
+                behavior: 'smooth'
+              })
+            }
+          } else {
+            // For user messages, scroll to bottom as usual
+            scrollElement.scrollTo({
+              top: scrollElement.scrollHeight,
+              behavior: 'smooth'
+            })
+          }
+        })
       }
     }
-  }, [travelState.chatHistory.length, travelState.recommendedTrips.length, travelState.chatHistory])
+  }, [travelState.chatHistory.length, travelState.chatHistory]) // Only trigger on new messages, not trip updates
 
   // TEMPORARY: Static mock trips for visual testing
   const mockTripsForTesting = [
@@ -189,7 +196,7 @@ export default function HomePage() {
                     console.log('All trip history:', travelState.tripHistory)
 
                     return (
-                      <div key={message.id} className="mb-6">
+                      <div key={message.id} data-message-id={message.id} className="mb-6">
                         {message.role === 'user' ? (
                           /* User Message Bubble */
                           <div className="flex justify-end">
