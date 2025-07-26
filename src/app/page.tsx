@@ -142,87 +142,99 @@ export default function HomePage() {
           <ScrollArea ref={scrollAreaRef} className="h-full px-4">
             <div className="mx-auto max-w-4xl w-full h-full flex flex-col justify-end">
               <div className="space-y-6 py-8 pb-32">
-                {/* Display All Chat Messages */}
+                {/* Display All Chat Messages with Associated Trip Cards */}
                 {travelState.chatHistory
                   .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
-                  .map((message) => (
-                    <div key={message.id} className="mb-6">
-                      {message.role === 'user' ? (
-                        /* User Message Bubble */
-                        <div className="flex justify-end">
-                          <div className="max-w-[80%] md:max-w-[70%]">
-                            <div className="bg-sky-100/95 backdrop-blur rounded-2xl p-6 shadow-lg border border-sky-200/20 chat-bubble-user">
-                              <p className="text-lg text-gray-800">{message.content}</p>
-                            </div>
-                          </div>
-                        </div>
-                      ) : (
-                        /* AI Message Bubble */
-                        <div className="flex justify-start">
-                          <div className="max-w-[80%] md:max-w-[70%]">
-                            <div className="bg-white/95 backdrop-blur rounded-2xl p-6 shadow-lg border border-white/20 chat-bubble-ai">
-                              <p className="text-lg text-gray-800">{message.content}</p>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-
-                {/* Display Trip Cards if Available */}
-                {travelState.recommendedTrips.length > 0 && (
-                  <div className="my-8 mb-24">
-                    <div className="grid gap-6 md:grid-cols-3">
-                      {travelState.recommendedTrips.map((trip) => (
-                        <Card key={trip.tripId} className="bg-white/95 backdrop-blur border-white/20 shadow-xl hover:shadow-2xl transition-all cursor-pointer overflow-hidden" onClick={() => handleTripSelect(trip)}>
-                          {/* Cover Image Placeholder */}
-                          <div className="h-32 bg-gradient-to-br from-sky-400 via-emerald-400 to-amber-400 relative">
-                            <div className="absolute inset-0 bg-black/20"></div>
-                            <div className="absolute top-3 right-3">
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 bg-white/20 hover:bg-white/30 backdrop-blur"
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  handleTripSave(trip.tripId)
-                                }}
-                              >
-                                <svg
-                                  className={`w-5 h-5 ${travelState.savedTrips.includes(trip.tripId) ? 'fill-red-500 text-red-500' : 'text-white'}`}
-                                  fill={travelState.savedTrips.includes(trip.tripId) ? 'currentColor' : 'none'}
-                                  stroke="currentColor"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                                </svg>
-                              </Button>
-                            </div>
-                            <div className="absolute bottom-3 left-3">
-                              <h3 className="text-white font-bold text-xl drop-shadow-lg">{trip.destination}</h3>
-                            </div>
-                          </div>
-
-                          <CardHeader className="pb-4">
-                            <CardDescription className="text-base font-semibold text-gray-700">
-                              {trip.duration} days • ${trip.estimatedCost.toLocaleString()}
-                            </CardDescription>
-                            <div className="mt-3 space-y-3">
-                              <p className="text-sm text-gray-600 line-clamp-2">{trip.description}</p>
-                              <div className="flex flex-wrap gap-2">
-                                {trip.highlights.slice(0, 3).map((highlight, idx) => (
-                                  <span key={idx} className="inline-block rounded-full bg-sky-100 px-3 py-1 text-xs font-medium text-sky-800">
-                                    {highlight}
-                                  </span>
-                                ))}
+                  .map((message) => {
+                    // Get trips associated with this message
+                    const associatedTrips = travelActions.getTripsByMessageId(message.id) || []
+                    
+                    // Debug logging
+                    console.log('Message:', message.id, message.role, 'Associated trips:', associatedTrips.length)
+                    console.log('All trip history:', travelState.tripHistory)
+                    
+                    return (
+                      <div key={message.id} className="mb-6">
+                        {message.role === 'user' ? (
+                          /* User Message Bubble */
+                          <div className="flex justify-end">
+                            <div className="max-w-[80%] md:max-w-[70%]">
+                              <div className="bg-sky-100/95 backdrop-blur rounded-2xl p-6 shadow-lg border border-sky-200/20 chat-bubble-user">
+                                <p className="text-lg text-gray-800">{message.content}</p>
                               </div>
                             </div>
-                          </CardHeader>
-                        </Card>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                          </div>
+                        ) : (
+                          /* AI Message Bubble with Optional Trip Cards */
+                          <div>
+                            <div className="flex justify-start mb-4">
+                              <div className="max-w-[80%] md:max-w-[70%]">
+                                <div className="bg-white/95 backdrop-blur rounded-2xl p-6 shadow-lg border border-white/20 chat-bubble-ai">
+                                  <p className="text-lg text-gray-800">{message.content}</p>
+                                </div>
+                              </div>
+                            </div>
+                            
+                            {/* Display Trip Cards for this AI message */}
+                            {associatedTrips.length > 0 && (
+                              <div className="mt-6 mb-4">
+                                <div className="grid gap-6 md:grid-cols-3">
+                                  {associatedTrips.map((trip) => (
+                                    <Card key={trip.tripId} className="bg-white/95 backdrop-blur border-white/20 shadow-xl hover:shadow-2xl transition-all cursor-pointer overflow-hidden" onClick={() => handleTripSelect(trip)}>
+                                      {/* Cover Image Placeholder */}
+                                      <div className="h-32 bg-gradient-to-br from-sky-400 via-emerald-400 to-amber-400 relative">
+                                        <div className="absolute inset-0 bg-black/20"></div>
+                                        <div className="absolute top-3 right-3">
+                                          <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="h-8 w-8 bg-white/20 hover:bg-white/30 backdrop-blur"
+                                            onClick={(e) => {
+                                              e.stopPropagation()
+                                              handleTripSave(trip.tripId)
+                                            }}
+                                          >
+                                            <svg
+                                              className={`w-5 h-5 ${travelState.savedTrips.includes(trip.tripId) ? 'fill-red-500 text-red-500' : 'text-white'}`}
+                                              fill={travelState.savedTrips.includes(trip.tripId) ? 'currentColor' : 'none'}
+                                              stroke="currentColor"
+                                              viewBox="0 0 24 24"
+                                            >
+                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                                            </svg>
+                                          </Button>
+                                        </div>
+                                        <div className="absolute bottom-3 left-3">
+                                          <h3 className="text-white font-bold text-xl drop-shadow-lg">{trip.destination}</h3>
+                                        </div>
+                                      </div>
+
+                                      <CardHeader className="pb-4">
+                                        <CardDescription className="text-base font-semibold text-gray-700">
+                                          {trip.duration} days • ${trip.estimatedCost.toLocaleString()}
+                                        </CardDescription>
+                                        <div className="mt-3 space-y-3">
+                                          <p className="text-sm text-gray-600 line-clamp-2">{trip.description}</p>
+                                          <div className="flex flex-wrap gap-2">
+                                            {trip.highlights.slice(0, 3).map((highlight, idx) => (
+                                              <span key={idx} className="inline-block rounded-full bg-sky-100 px-3 py-1 text-xs font-medium text-sky-800">
+                                                {highlight}
+                                              </span>
+                                            ))}
+                                          </div>
+                                        </div>
+                                      </CardHeader>
+                                    </Card>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
+
 
                 {/* Loading Spinner */}
                 {conversationState.isLoading && (

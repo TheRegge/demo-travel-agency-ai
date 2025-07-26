@@ -1,12 +1,13 @@
 "use client"
 
 import React, { createContext, useContext, useReducer, ReactNode } from "react"
-import { AppState, TravelContextActions, TravelContextType, ChatMessage, FilterState } from "@/types/app"
+import { AppState, TravelContextActions, TravelContextType, ChatMessage, FilterState, TripRecommendationSet } from "@/types/app"
 import { TripRecommendation } from "@/types/travel"
 
 // Initial state
 const initialState: AppState = {
   chatHistory: [],
+  tripHistory: [],
   recommendedTrips: [],
   savedTrips: [],
   activeFilters: {},
@@ -19,10 +20,11 @@ const initialState: AppState = {
 
 // Action types
 type TravelAction = 
-  | { type: "ADD_MESSAGE"; payload: Omit<ChatMessage, "id" | "timestamp"> }
+  | { type: "ADD_MESSAGE"; payload: ChatMessage }
   | { type: "CLEAR_CHAT_HISTORY" }
   | { type: "SET_IS_TYPING"; payload: boolean }
   | { type: "UPDATE_RECOMMENDATIONS"; payload: TripRecommendation[] }
+  | { type: "ADD_TRIP_RECOMMENDATIONS"; payload: { messageId: string; trips: TripRecommendation[]; context?: string } }
   | { type: "SELECT_TRIP"; payload: string }
   | { type: "SAVE_TRIP"; payload: string }
   | { type: "UNSAVE_TRIP"; payload: string }
@@ -37,14 +39,9 @@ type TravelAction =
 function travelReducer(state: AppState, action: TravelAction): AppState {
   switch (action.type) {
     case "ADD_MESSAGE":
-      const newMessage: ChatMessage = {
-        ...action.payload,
-        id: crypto.randomUUID(),
-        timestamp: new Date(),
-      }
       return {
         ...state,
-        chatHistory: [...state.chatHistory, newMessage],
+        chatHistory: [...state.chatHistory, action.payload],
       }
     
     case "CLEAR_CHAT_HISTORY":
@@ -64,6 +61,22 @@ function travelReducer(state: AppState, action: TravelAction): AppState {
       return {
         ...state,
         recommendedTrips: action.payload,
+      }
+    
+    case "ADD_TRIP_RECOMMENDATIONS":
+      const newTripSet: TripRecommendationSet = {
+        id: crypto.randomUUID(),
+        messageId: action.payload.messageId,
+        trips: action.payload.trips,
+        timestamp: new Date(),
+        ...(action.payload.context && { conversationContext: action.payload.context })
+      }
+      console.log('TravelContext: ADD_TRIP_RECOMMENDATIONS called with:', newTripSet)
+      return {
+        ...state,
+        tripHistory: [...state.tripHistory, newTripSet],
+        currentTripDisplayId: newTripSet.id,
+        recommendedTrips: action.payload.trips, // Also update current trips for backward compatibility
       }
     
     case "SELECT_TRIP":
@@ -137,10 +150,23 @@ export function TravelProvider({ children }: TravelProviderProps) {
   const [state, dispatch] = useReducer(travelReducer, initialState)
   
   const actions: TravelContextActions = {
-    addMessage: (message) => dispatch({ type: "ADD_MESSAGE", payload: message }),
+    addMessage: (message) => {
+      const messageId = crypto.randomUUID()
+      const fullMessage = {
+        ...message,
+        id: messageId,
+        timestamp: new Date()
+      }
+      dispatch({ type: "ADD_MESSAGE", payload: fullMessage })
+      return messageId
+    },
     clearChatHistory: () => dispatch({ type: "CLEAR_CHAT_HISTORY" }),
     setIsTyping: (isTyping) => dispatch({ type: "SET_IS_TYPING", payload: isTyping }),
     updateRecommendations: (trips) => dispatch({ type: "UPDATE_RECOMMENDATIONS", payload: trips }),
+    addTripRecommendations: (messageId, trips, context) => 
+      dispatch({ type: "ADD_TRIP_RECOMMENDATIONS", payload: { messageId, trips, ...(context && { context }) } }),
+    getTripsByMessageId: (messageId) => 
+      state.tripHistory.find(set => set.messageId === messageId)?.trips,
     selectTrip: (tripId) => dispatch({ type: "SELECT_TRIP", payload: tripId }),
     saveTrip: (tripId) => dispatch({ type: "SAVE_TRIP", payload: tripId }),
     unsaveTrip: (tripId) => dispatch({ type: "UNSAVE_TRIP", payload: tripId }),

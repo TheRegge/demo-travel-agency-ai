@@ -9,6 +9,15 @@ export interface ChatMessage {
   isTyping?: boolean
 }
 
+// Trip recommendation set with message association
+export interface TripRecommendationSet {
+  id: string
+  messageId: string  // Links to the AI message that generated these trips
+  trips: TripRecommendation[]
+  timestamp: Date
+  conversationContext?: string // Optional context about what user asked for
+}
+
 // Filter state for trip recommendations
 export interface FilterState {
   budget?: {
@@ -29,8 +38,14 @@ export interface AppState {
   // Chat conversation history
   chatHistory: ChatMessage[]
   
-  // Currently recommended trips (displayed outside chat)
+  // Trip recommendation history with message associations
+  tripHistory: TripRecommendationSet[]
+  
+  // Currently recommended trips (displayed outside chat) - kept for backward compatibility
   recommendedTrips: TripRecommendation[]
+  
+  // Which trip set is currently featured (optional)
+  currentTripDisplayId?: string
   
   // User's saved/favorited trips
   savedTrips: string[]
@@ -51,12 +66,14 @@ export interface AppState {
 // Context actions for state management
 export interface TravelContextActions {
   // Chat actions
-  addMessage: (message: Omit<ChatMessage, "id" | "timestamp">) => void
+  addMessage: (message: Omit<ChatMessage, "id" | "timestamp">) => string // Returns the generated message ID
   clearChatHistory: () => void
   setIsTyping: (isTyping: boolean) => void
   
   // Trip recommendation actions
   updateRecommendations: (trips: TripRecommendation[]) => void
+  addTripRecommendations: (messageId: string, trips: TripRecommendation[], context?: string) => void
+  getTripsByMessageId: (messageId: string) => TripRecommendation[] | undefined
   selectTrip: (tripId: string) => void
   saveTrip: (tripId: string) => void
   unsaveTrip: (tripId: string) => void

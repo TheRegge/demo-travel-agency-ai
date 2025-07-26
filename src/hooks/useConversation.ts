@@ -79,15 +79,24 @@ export const useConversation = (): UseConversationReturn => {
           userInput: '' // Ensure input stays cleared
         }))
 
-        // Add AI message to global context
-        travelActions.addMessage({
+        // Add AI message to global context and get the generated message ID
+        const messageId = travelActions.addMessage({
           role: 'assistant',
           content: response.message
         })
 
-        // Update trip recommendations immediately if available (only on second response)
+        // Update trip recommendations using new trip history system
         if (response.data?.recommendations && response.data.recommendations.length > 0) {
-          console.log('Updating travel recommendations:', response.data.recommendations) // Debug logging
+          console.log('Adding trip recommendations to history for message:', messageId, response.data.recommendations) // Debug logging
+          
+          // Use the new trip history system
+          travelActions.addTripRecommendations(
+            messageId, 
+            response.data.recommendations,
+            'AI travel recommendations' // Optional context
+          )
+          
+          // Also update old system for backward compatibility
           travelActions.updateRecommendations(response.data.recommendations)
         } else {
           console.log('No recommendations in response (likely first message):', response.data) // Debug logging
