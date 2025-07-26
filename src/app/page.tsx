@@ -22,7 +22,7 @@ export default function HomePage() {
     updateInput(value)
   }
 
-  const handleTripSelect = (trip: any) => {
+  const handleTripSelect = (trip: { tripId: string }) => {
     travelActions.selectTrip(trip.tripId)
   }
 
@@ -46,13 +46,12 @@ export default function HomePage() {
           if (lastMessage?.role === 'assistant') {
             // Find the actual AI message element in the DOM
             const messageElement = document.querySelector(`[data-message-id="${lastMessage.id}"]`)
-            
+
             if (messageElement) {
               // Responsive positioning: mobile shows beginning, desktop shows more context
               const isMobile = window.innerWidth < 768
-              
-              console.log('Auto-scroll targeting message:', lastMessage.id, 'isMobile:', isMobile)
-              
+
+
               // Scroll to the AI message with responsive positioning
               messageElement.scrollIntoView({
                 behavior: 'smooth',
@@ -61,14 +60,13 @@ export default function HomePage() {
               })
             } else {
               // Fallback to old buffer method if DOM targeting fails
-              console.log('Fallback to buffer scroll for message:', lastMessage.id)
               const scrollHeight = scrollElement.scrollHeight
               const clientHeight = scrollElement.clientHeight
               const maxScroll = scrollHeight - clientHeight
               const isMobile = window.innerWidth < 768
               const buffer = isMobile ? 250 : 100
               const targetScroll = Math.max(0, maxScroll - buffer)
-              
+
               scrollElement.scrollTo({
                 top: targetScroll,
                 behavior: 'smooth'
@@ -86,57 +84,6 @@ export default function HomePage() {
     }
   }, [travelState.chatHistory.length, travelState.chatHistory]) // Only trigger on new messages, not trip updates
 
-  // TEMPORARY: Static mock trips for visual testing
-  const mockTripsForTesting = [
-    {
-      tripId: "orlando-test-1",
-      destination: "Orlando, Florida",
-      duration: 7,
-      estimatedCost: 3200,
-      highlights: ["Walt Disney World Resort", "Universal Studios Florida", "Disney Character Dining"],
-      description: "The magical theme park capital of the world, home to Disney World, Universal Studios, and countless family attractions. Perfect for creating unforgettable memories with children of all ages.",
-      activities: ["Walt Disney World Resort", "Universal Studios Florida", "Disney Character Dining", "SeaWorld Orlando", "ICON Park"],
-      season: "spring",
-      kidFriendly: true,
-      customizations: {
-        hotelType: "standard" as const,
-        activities: ["Walt Disney World Resort", "Universal Studios Florida", "Disney Character Dining"]
-      },
-      score: 95
-    },
-    {
-      tripId: "prague-test-2",
-      destination: "Prague, Czech Republic",
-      duration: 5,
-      estimatedCost: 2800,
-      highlights: ["Prague Castle Complex", "Charles Bridge Walk", "Old Town Square"],
-      description: "A fairy-tale city with stunning medieval architecture, rich history, and affordable luxury. Explore cobblestone streets, magnificent castles, and enjoy world-class beer culture.",
-      activities: ["Prague Castle Complex", "Charles Bridge Walk", "Old Town Square", "Czech Beer Tour", "Vltava River Cruise"],
-      season: "spring",
-      kidFriendly: true,
-      customizations: {
-        hotelType: "standard" as const,
-        activities: ["Prague Castle Complex", "Charles Bridge Walk", "Old Town Square"]
-      },
-      score: 88
-    },
-    {
-      tripId: "california-test-3",
-      destination: "California Coast",
-      duration: 8,
-      estimatedCost: 4100,
-      highlights: ["Big Sur Scenic Drive", "Monterey Bay Aquarium", "Santa Barbara Wine Country"],
-      description: "Experience the stunning Pacific coastline with dramatic cliffs, charming seaside towns, and world-renowned wine regions. Perfect for scenic drives and coastal adventures.",
-      activities: ["Big Sur Scenic Drive", "Monterey Bay Aquarium", "Santa Barbara Wine Country", "Hearst Castle Tour", "Carmel-by-the-Sea"],
-      season: "spring",
-      kidFriendly: true,
-      customizations: {
-        hotelType: "luxury" as const,
-        activities: ["Big Sur Scenic Drive", "Monterey Bay Aquarium", "Santa Barbara Wine Country"]
-      },
-      score: 92
-    }
-  ]
 
   return (
     <div className="h-screen relative overflow-hidden">
@@ -191,9 +138,6 @@ export default function HomePage() {
                     // Get trips associated with this message
                     const associatedTrips = travelActions.getTripsByMessageId(message.id) || []
 
-                    // Debug logging
-                    console.log('Message:', message.id, message.role, 'Associated trips:', associatedTrips.length)
-                    console.log('All trip history:', travelState.tripHistory)
 
                     return (
                       <div key={message.id} data-message-id={message.id} className="mb-6">
@@ -294,7 +238,7 @@ export default function HomePage() {
       </div>
 
       {/* Fixed Input Section at Bottom - Absolute positioned */}
-      <div className="absolute left-0 right-0 border-t border-white/20 px-3 py-3 sm:px-4 sm:py-4 md:py-6 z-50 bottom-[15px] md:bottom-[20px]">
+      <div className="absolute left-0 right-0 border-t border-white/20 px-3 py-3 sm:px-4 sm:py-4 md:py-6 z-50 bottom-[15px] md:bottom-[70px]">
         <div className="mx-auto max-w-4xl w-full">
           <ConversationInput
             value={conversationState.userInput}

@@ -8,8 +8,7 @@ import { LoadingSpinner } from './LoadingSpinner'
 
 export const ConversationDisplay = ({
   isLoading,
-  response,
-  onLoadingComplete
+  response
 }: ConversationDisplayProps) => {
   
   // Show initial state when no response and not loading

@@ -87,7 +87,6 @@ export const useConversation = (): UseConversationReturn => {
 
         // Update trip recommendations using new trip history system
         if (response.data?.recommendations && response.data.recommendations.length > 0) {
-          console.log('Adding trip recommendations to history for message:', messageId, response.data.recommendations) // Debug logging
           
           // Use the new trip history system
           travelActions.addTripRecommendations(
@@ -98,8 +97,6 @@ export const useConversation = (): UseConversationReturn => {
           
           // Also update old system for backward compatibility
           travelActions.updateRecommendations(response.data.recommendations)
-        } else {
-          console.log('No recommendations in response (likely first message):', response.data) // Debug logging
         }
 
         travelActions.setIsTyping(false)

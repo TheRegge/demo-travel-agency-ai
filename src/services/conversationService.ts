@@ -70,7 +70,7 @@ const generatePlaceholderResponse = async (_input: string, isFirstMessage: boole
  * TODO: REMOVE IN PHASE 2 - Replace with real AI trip generation
  * Generate mock trip recommendations based on user input
  */
-const generateMockTrips = (_input: string): TripRecommendation[] => {
+const generateMockTrips = (): TripRecommendation[] => {
   // Simple keyword-based trip selection (TODO: implement actual keyword matching in Phase 2)
   const selectedDestinations = mockDestinations.slice(0, 3) // Get first 3 destinations
   
@@ -101,7 +101,7 @@ class ConversationServiceImpl implements ConversationService {
    * Get AI response for user input
    * TODO: REMOVE IN PHASE 2 - Replace with real Gemini AI call
    */
-  async getResponse(input: string, conversationHistory: any[] = []): Promise<AIResponse> {
+  async getResponse(input: string, conversationHistory: { type: string }[] = []): Promise<AIResponse> {
     try {
       // Validate input
       const validation = this.validateInput(input)
@@ -129,7 +129,7 @@ class ConversationServiceImpl implements ConversationService {
       // Only generate trip recommendations on second response
       let mockTrips: TripRecommendation[] = []
       if (!isFirstMessage) {
-        mockTrips = generateMockTrips(input)
+        mockTrips = generateMockTrips()
         console.log('Generated mock trips for second response:', mockTrips) // Debug logging
       }
 
@@ -169,4 +169,4 @@ class ConversationServiceImpl implements ConversationService {
 export const conversationService = new ConversationServiceImpl()
 
 // Export for testing
-export { validateInput, PLACEHOLDER_RESPONSES }
+export { validateInput }

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, KeyboardEvent } from "react"
+import { KeyboardEvent } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Send } from "lucide-react"

@@ -3,7 +3,7 @@
  * Handles user input with character limits and validation
  */
 
-import { useState, FormEvent } from 'react'
+import { FormEvent } from 'react'
 import { ConversationInputProps } from '@/types/conversation'
 import { useCharacterLimit } from '@/hooks/useCharacterLimit'
 
