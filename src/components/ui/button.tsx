@@ -21,7 +21,7 @@ const buttonVariants = cva(
           "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
         link: "text-primary underline-offset-4 hover:underline",
         tropical:
-          "bg-gradient-to-r from-sky-500 to-emerald-500 text-white shadow-xl hover:from-sky-600 hover:to-emerald-600 transition-all duration-200 transform hover:scale-[1.02]",
+          "bg-gradient-to-r from-sky-500 to-emerald-500 text-white shadow-xl hover:from-sky-600 hover:to-emerald-600 focus-visible:ring-sky-400/50 transition-all duration-200 transform hover:scale-[1.02] focus-visible:scale-[1.02]",
       },
       size: {
         default: "h-9 px-4 py-2 has-[>svg]:px-3",

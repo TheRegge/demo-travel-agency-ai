@@ -43,17 +43,27 @@ export const ConversationInput = ({
     <form onSubmit={handleSubmit} className="max-w-3xl mx-auto">
       <div className="relative">
         {/* Character count - positioned at top */}
-        <div className={`absolute top-4 right-4 text-xs font-medium ${getColorClass()} z-10`}>
+        <div id="char-count" className={`absolute top-4 right-4 text-xs font-medium ${getColorClass()} z-10`} aria-label={`Character count: ${count} of ${maxChars}`}>
           {count}/{maxChars}
         </div>
+        
+        {/* Hidden help text for screen readers */}
+        <div id="travel-help" className="sr-only">
+          Use this text area to describe your dream trip, including destinations, budget, travel dates, and any special requirements. The AI will help create personalized travel recommendations.
+        </div>
 
+        <label htmlFor="travel-input" className="sr-only">
+          Describe your dream trip or ask questions about travel destinations
+        </label>
         <textarea
+          id="travel-input"
           value={value}
           onChange={handleInputChange}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
           disabled={disabled}
-          className="w-full px-8 py-6 pr-16 sm:px-10 sm:py-8 sm:pr-20 md:px-12 md:py-10 md:pr-24 text-lg sm:text-xl md:text-2xl lg:text-3xl rounded-2xl border-2 border-gray-300 focus:border-sky-500 focus:outline-none shadow-xl bg-white placeholder:text-gray-400 transition-all duration-200 hover:border-gray-400 resize-none min-h-[120px] sm:min-h-[140px] md:min-h-[150px] lg:min-h-[180px] disabled:opacity-60 disabled:cursor-not-allowed"
+          className="w-full px-8 py-6 pr-16 sm:px-10 sm:py-8 sm:pr-20 md:px-12 md:py-10 md:pr-24 text-lg sm:text-xl md:text-2xl lg:text-3xl rounded-2xl border-2 border-gray-300 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/20 focus:outline-none shadow-xl bg-white placeholder:text-gray-400 transition-all duration-200 hover:border-gray-400 resize-none min-h-[120px] sm:min-h-[140px] md:min-h-[150px] lg:min-h-[180px] disabled:opacity-60 disabled:cursor-not-allowed"
+          aria-describedby="char-count travel-help"
           autoFocus
         />
 
@@ -62,11 +72,14 @@ export const ConversationInput = ({
           type="submit"
           disabled={!value.trim() || !isValid || disabled}
           className="absolute bottom-4 right-4 sm:bottom-6 sm:right-6 md:bottom-8 md:right-8 w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-sky-500 to-emerald-500 hover:from-sky-600 hover:to-emerald-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-full shadow-lg transition-all duration-200 transform hover:scale-105 disabled:hover:scale-100 flex items-center justify-center"
+          aria-label="Send message"
         >
           <svg
             className="w-5 h-5 sm:w-6 sm:h-6 transform -rotate-45 translate-0.25 -translate-y-0.25"
             fill="currentColor"
             viewBox="0 0 24 24"
+            aria-hidden="true"
+            role="presentation"
           >
             <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
           </svg>

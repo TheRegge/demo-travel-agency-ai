@@ -3,11 +3,11 @@
  * Displays a responsive grid of trip recommendations below the homepage conversation area
  */
 
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
 import { TripRecommendationsProps } from '@/types/conversation'
 import { TripRecommendation } from '@/types/travel'
 import { TripCard } from './TripCard'
-import { TripDetailModal } from './TripDetailModal'
+import { LazyTripDetailModal } from '@/components/lazy'
 import { LoadingSpinner } from '@/components/conversation/LoadingSpinner'
 
 export const TripRecommendations = ({
@@ -63,7 +63,7 @@ export const TripRecommendations = ({
               AI Recommended Trips for You
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Based on your preferences, here are some amazing destinations I've carefully selected for your perfect getaway
+              Based on your preferences, here are some amazing destinations I&apos;ve carefully selected for your perfect getaway
             </p>
           </div>
 
@@ -102,7 +102,7 @@ export const TripRecommendations = ({
           <div className="text-center py-12">
             <div className="mb-6">
               <svg 
-                className="w-24 h-24 text-gray-300 mx-auto" 
+                className="w-24 h-24 text-gray-400 mx-auto" 
                 fill="none" 
                 stroke="currentColor" 
                 viewBox="0 0 24 24"
@@ -118,20 +118,24 @@ export const TripRecommendations = ({
             <h3 className="text-2xl font-semibold text-gray-700 mb-2">
               No trips found yet
             </h3>
-            <p className="text-gray-500 max-w-md mx-auto">
-              Share your travel dreams above and I'll create personalized recommendations just for you!
+            <p className="text-gray-600 max-w-md mx-auto">
+              Share your travel dreams above and I&apos;ll create personalized recommendations just for you!
             </p>
           </div>
         )}
 
         {/* Trip Detail Modal */}
-        <TripDetailModal
-          trip={selectedTrip}
-          isOpen={isModalOpen}
-          onClose={handleModalClose}
-          onSave={handleModalSave}
-          isSaved={selectedTrip ? savedTripIds.includes(selectedTrip.tripId) : false}
-        />
+        {isModalOpen && (
+          <Suspense fallback={<div className="fixed inset-0 bg-black/50 flex items-center justify-center"><LoadingSpinner size="md" /></div>}>
+            <LazyTripDetailModal
+              trip={selectedTrip}
+              isOpen={isModalOpen}
+              onClose={handleModalClose}
+              onSave={handleModalSave}
+              isSaved={selectedTrip ? savedTripIds.includes(selectedTrip.tripId) : false}
+            />
+          </Suspense>
+        )}
       </div>
     </section>
     </>

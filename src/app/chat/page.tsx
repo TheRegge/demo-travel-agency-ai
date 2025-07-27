@@ -1,10 +1,11 @@
 "use client"
 
+import { Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 import { ChatContainer } from "@/components/chat"
 import { ResponsiveTropicalBackground } from "@/components/illustrations"
 
-export default function ChatPage() {
+function ChatPageContent() {
   const searchParams = useSearchParams()
   const initialQuery = searchParams.get("q") || ""
 
@@ -48,16 +49,24 @@ export default function ChatPage() {
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-sky-600 font-bold">•</span>
-                Specify if you're traveling with kids or have special needs
+                Specify if you&apos;re traveling with kids or have special needs
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-sky-600 font-bold">•</span>
-                Ask about specific destinations or activities you're interested in
+                Ask about specific destinations or activities you&apos;re interested in
               </li>
             </ul>
           </div>
         </div>
       </div>
     </div>
+  )
+}
+
+export default function ChatPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ChatPageContent />
+    </Suspense>
   )
 }

@@ -46,7 +46,7 @@ export default function HomePage() {
 
 
   return (
-    <div className="h-screen relative overflow-hidden">
+    <main className="h-screen relative overflow-hidden" role="main" aria-label="DreamVoyager AI Travel Assistant">
       {/* Tropical Background - Full Height */}
       <div className="fixed inset-0 z-0">
         <ResponsiveTropicalBackground />
@@ -56,19 +56,19 @@ export default function HomePage() {
       <div className="fixed inset-0 z-10 sky-gradient-overlay" style={{ height: '25vh' }}></div>
 
       {/* Floating Logo */}
-      <div className="absolute top-4 left-4 sm:top-6 sm:left-6" style={{ zIndex: Z_INDEX.header }}>
+      <header className="absolute top-4 left-4 sm:top-6 sm:left-6" style={{ zIndex: Z_INDEX.header }} role="banner">
         <Logo />
-      </div>
+      </header>
 
       {/* Initial Welcome Message - Always centered when no messages */}
       {!travelState.chatHistory.length && (
-        <div className="absolute inset-0 flex items-center justify-center" style={{ bottom: '320px', zIndex: Z_INDEX.content }}>
+        <section className="absolute inset-0 flex items-center justify-center" style={{ bottom: '320px', zIndex: Z_INDEX.content }} aria-labelledby="welcome-heading">
           <WelcomeMessage />
-        </div>
+        </section>
       )}
 
       {/* Scrollable AI Responses Area - Absolute positioned */}
-      <div className={`absolute inset-0 ${SPACING.bottomOffset}`} style={{ zIndex: Z_INDEX.chat }}>
+      <section className={`absolute inset-0 ${SPACING.bottomOffset}`} style={{ zIndex: Z_INDEX.chat }} role="log" aria-live="polite" aria-label="Chat conversation">
         <div className="relative h-full">
           <ScrollArea ref={scrollAreaRef} className="h-full px-4">
             <div className="mx-auto max-w-4xl w-full h-full flex flex-col justify-end">
@@ -125,10 +125,10 @@ export default function HomePage() {
           {/* Gradient fade overlay at bottom - matches flat tropical background */}
           <div className="absolute bottom-0 left-0 right-0 h-20 pointer-events-none z-10" style={{ background: 'linear-gradient(to top, var(--sky-light) 0%, transparent 100%)' }}></div>
         </div>
-      </div>
+      </section>
 
       {/* Fixed Input Section at Bottom - Absolute positioned */}
-      <div className={`absolute left-0 right-0 border-t border-white/20 ${SPACING.containerPadding} py-3 sm:py-4 md:py-6 ${SPACING.inputBottomOffset}`} style={{ zIndex: Z_INDEX.chat }}>
+      <section className={`absolute left-0 right-0 border-t border-white/20 ${SPACING.containerPadding} py-3 sm:py-4 md:py-6 ${SPACING.inputBottomOffset}`} style={{ zIndex: Z_INDEX.chat }} role="complementary" aria-label="Chat input">
         <div className="mx-auto max-w-4xl w-full">
           <ConversationInput
             value={conversationState.userInput}
@@ -138,9 +138,9 @@ export default function HomePage() {
             maxLength={750}
           />
         </div>
-      </div>
+      </section>
 
 
-    </div>
+    </main>
   )
 }

@@ -34,8 +34,17 @@ export const InlineTripCard = ({
   return (
     <Card 
       key={trip.tripId} 
-      className={`bg-white/95 backdrop-blur border-white/20 shadow-xl hover:shadow-2xl transition-all cursor-pointer overflow-hidden ${className}`} 
+      className={`bg-white/95 backdrop-blur border-white/20 shadow-xl hover:shadow-2xl focus:shadow-2xl focus:ring-4 focus:ring-sky-500/20 focus:outline-none transition-all cursor-pointer overflow-hidden ${className}`} 
       onClick={handleSelect}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          handleSelect()
+        }
+      }}
+      tabIndex={0}
+      role="button"
+      aria-label={`View details for ${trip.destination} trip`}
     >
       {/* Cover Image Placeholder */}
       <div className="h-24 sm:h-28 md:h-32 bg-gradient-to-br from-sky-400 via-emerald-400 to-amber-400 relative">

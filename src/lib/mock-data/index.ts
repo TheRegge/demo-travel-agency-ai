@@ -32,7 +32,7 @@ export function getDestinationsInBudget(maxBudget: number, season: 'peak' | 'sho
  */
 export function getFallbackRecommendations(budget: number): {
   tier: 'ultraBudget' | 'lowBudget' | 'moderateBudget',
-  recommendations: any[]
+  recommendations: unknown[]
 } {
   if (budget <= 200) {
     return {

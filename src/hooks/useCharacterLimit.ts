@@ -23,7 +23,7 @@ export const useCharacterLimit = (
       
       if (remaining <= 50) return 'text-red-500'
       if (remaining <= 150) return 'text-amber-500'
-      return 'text-gray-500'
+      return 'text-gray-600'
     }
   }, [count, maxChars])
 

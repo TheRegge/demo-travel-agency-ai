@@ -36,10 +36,19 @@ export const TripCard = ({
 
   return (
     <Card 
-      className="cursor-pointer hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] bg-white border-gray-200 rounded-2xl overflow-hidden"
+      className="cursor-pointer hover:shadow-xl focus:shadow-xl focus:ring-4 focus:ring-sky-500/20 focus:outline-none transition-all duration-300 transform hover:scale-[1.02] focus:scale-[1.02] bg-white border-gray-200 rounded-2xl overflow-hidden"
       onClick={handleSelect}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          handleSelect()
+        }
+      }}
+      tabIndex={0}
+      role="button"
+      aria-label={`View details for ${trip.destination} trip`}
     >
       <CardHeader className="p-6">
         {/* Header with destination and save button */}
@@ -103,7 +112,7 @@ export const TripCard = ({
         </div>
 
         {/* Trip features */}
-        <div className="flex items-center justify-between text-sm text-gray-500">
+        <div className="flex items-center justify-between text-sm text-gray-600">
           <div className="flex items-center gap-4">
             {trip.kidFriendly && (
               <div className="flex items-center gap-1">

@@ -15,6 +15,8 @@ export function PalmTrees({ className = '', animate = true }: PalmTreesProps) {
         viewBox="0 0 128 160"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
+        aria-hidden="true"
+        role="presentation"
       >
         {/* Trunk */}
         <path
@@ -83,6 +85,8 @@ export function PalmTrees({ className = '', animate = true }: PalmTreesProps) {
         viewBox="0 0 112 144"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
+        aria-hidden="true"
+        role="presentation"
       >
         {/* Trunk */}
         <path
@@ -143,6 +147,8 @@ export function PalmTrees({ className = '', animate = true }: PalmTreesProps) {
         viewBox="0 0 80 120"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
+        aria-hidden="true"
+        role="presentation"
       >
         {/* Trunk */}
         <path

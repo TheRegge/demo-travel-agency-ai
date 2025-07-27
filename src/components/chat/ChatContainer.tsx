@@ -99,7 +99,7 @@ export function ChatContainer({ initialQuery = "" }: ChatContainerProps) {
             <h3 className="font-semibold text-gray-900">Travel Planning Assistant</h3>
             <div className="flex items-center gap-2">
               <div className="h-2 w-2 rounded-full bg-emerald-400"></div>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-600">
                 {isTyping ? "Typing..." : "Online • Ready to help"}
               </p>
             </div>
@@ -185,7 +185,7 @@ export function ChatContainer({ initialQuery = "" }: ChatContainerProps) {
                   </div>
                 </Button>
               </div>
-              <p className="text-xs text-gray-500 mt-3">
+              <p className="text-xs text-gray-600 mt-3">
                 Click any example to see a full conversation, or start typing your own question below.
               </p>
             </div>

@@ -16,6 +16,8 @@ export function OceanWaves({ className = '', animate = true }: OceanWavesProps) 
         viewBox="0 0 1200 120"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
+        aria-hidden="true"
+        role="presentation"
       >
         <path
           d="M0,60 C150,100 350,0 600,60 C850,120 1050,20 1200,60 V120 H0 V60Z"
@@ -32,6 +34,8 @@ export function OceanWaves({ className = '', animate = true }: OceanWavesProps) 
         viewBox="0 0 1200 96"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
+        aria-hidden="true"
+        role="presentation"
       >
         <path
           d="M0,48 C200,80 400,16 600,48 C800,80 1000,16 1200,48 V96 H0 V48Z"
@@ -48,6 +52,8 @@ export function OceanWaves({ className = '', animate = true }: OceanWavesProps) 
         viewBox="0 0 1200 64"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
+        aria-hidden="true"
+        role="presentation"
       >
         <path
           d="M0,32 C300,64 900,0 1200,32 V64 H0 V32Z"
