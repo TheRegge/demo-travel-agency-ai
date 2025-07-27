@@ -2,16 +2,17 @@
 
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { allMockDestinations } from "@/lib/mock-data"
+import { mockDestinations } from "@/lib/mock-data"
 import { formatPrice } from "@/lib/utils"
 import { Heart, MapPin, Star, Users } from "lucide-react"
 import { useState } from "react"
+import { MockDestination, Activity } from "@/types/travel"
 
 export function FeaturedDestinationsGrid() {
   const [favorites, setFavorites] = useState<Set<string>>(new Set())
   
   // Get featured destinations - mix of categories for variety
-  const featuredDestinations = allMockDestinations.slice(0, 6)
+  const featuredDestinations = mockDestinations.slice(0, 6)
   
   const toggleFavorite = (destinationId: string) => {
     const newFavorites = new Set(favorites)
@@ -59,7 +60,7 @@ export function FeaturedDestinationsGrid() {
 
   return (
     <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-      {featuredDestinations.map((destination) => (
+      {featuredDestinations.map((destination: MockDestination) => (
         <Card key={destination.id} className="group overflow-hidden hover:shadow-xl transition-all duration-300">
           {/* Destination Image Placeholder */}
           <div className="relative h-48 bg-gradient-to-br from-sky-400 via-sky-500 to-emerald-400 overflow-hidden">
@@ -138,7 +139,7 @@ export function FeaturedDestinationsGrid() {
             <div className="mb-6">
               <h4 className="text-sm font-medium text-gray-700 mb-2">Popular Activities:</h4>
               <div className="flex flex-wrap gap-1">
-                {destination.activities.slice(0, 3).map((activity, index) => (
+                {destination.activities.slice(0, 3).map((activity: Activity, index: number) => (
                   <span
                     key={index}
                     className="inline-block px-2 py-1 text-xs bg-sky-50 text-sky-700 rounded-full"

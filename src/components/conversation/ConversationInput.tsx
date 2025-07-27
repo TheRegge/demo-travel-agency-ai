@@ -3,20 +3,31 @@
  * Handles user input with character limits and validation
  */
 
-import { FormEvent } from 'react'
+import { FormEvent, forwardRef, useImperativeHandle, useRef } from 'react'
 import { ConversationInputProps } from '@/types/conversation'
 import { useCharacterLimit } from '@/hooks/useCharacterLimit'
 
-export const ConversationInput = ({
+export interface ConversationInputRef {
+  focus: () => void
+}
+
+export const ConversationInput = forwardRef<ConversationInputRef, ConversationInputProps>(({
   value,
   onChange,
   onSubmit,
   disabled = false,
   maxLength = 750,
   placeholder = "I want to visit beaches in Thailand with my family on a $3000 budget..."
-}: ConversationInputProps) => {
+}, ref) => {
 
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
   const { count, isValid, getColorClass, maxChars } = useCharacterLimit(value, maxLength)
+
+  useImperativeHandle(ref, () => ({
+    focus: () => {
+      textareaRef.current?.focus()
+    }
+  }))
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault()
@@ -56,6 +67,7 @@ export const ConversationInput = ({
           Describe your dream trip or ask questions about travel destinations
         </label>
         <textarea
+          ref={textareaRef}
           id="travel-input"
           value={value}
           onChange={handleInputChange}
@@ -87,4 +99,6 @@ export const ConversationInput = ({
       </div>
     </form>
   )
-}
+})
+
+ConversationInput.displayName = 'ConversationInput'

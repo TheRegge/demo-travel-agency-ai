@@ -4,19 +4,21 @@ import { useTravelContext } from "@/contexts/TravelContext"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { ResponsiveTropicalBackground } from "@/components/illustrations"
 import { ConversationInput, LoadingSpinner } from "@/components/conversation"
+import { ConversationInputRef } from "@/components/conversation/ConversationInput"
 import { Logo } from "@/components/layout/Logo"
 import { WelcomeMessage } from "@/components/chat/WelcomeMessage"
 import { ChatMessageBubble } from "@/components/chat/ChatMessageBubble"
 import { InlineTripCard } from "@/components/trips/InlineTripCard"
 import { useConversation } from "@/hooks"
 import { useAutoScroll } from "@/hooks/useAutoScroll"
-import { useRef } from "react"
+import { useRef, useEffect } from "react"
 import { SPACING, Z_INDEX } from "@/lib/constants/layout"
 
 export default function HomePage() {
   const { state: travelState, actions: travelActions } = useTravelContext()
   const { state: conversationState, submitMessage, updateInput } = useConversation()
   const scrollAreaRef = useRef<HTMLDivElement>(null)
+  const conversationInputRef = useRef<ConversationInputRef>(null)
 
   const handleSubmit = (message: string) => {
     submitMessage(message)
@@ -43,6 +45,20 @@ export default function HomePage() {
     scrollAreaRef, 
     chatHistory: travelState.chatHistory 
   })
+
+  // Auto-focus input after AI responses
+  useEffect(() => {
+    if (!conversationState.isLoading && travelState.chatHistory.length > 0) {
+      // Check if the last message is from the AI
+      const lastMessage = travelState.chatHistory[travelState.chatHistory.length - 1]
+      if (lastMessage?.role === 'assistant') {
+        // Add a small delay to ensure UI has finished updating
+        setTimeout(() => {
+          conversationInputRef.current?.focus()
+        }, 100)
+      }
+    }
+  }, [conversationState.isLoading, travelState.chatHistory])
 
 
   return (
@@ -131,6 +147,7 @@ export default function HomePage() {
       <section className={`absolute left-0 right-0 border-t border-white/20 ${SPACING.containerPadding} py-3 sm:py-4 md:py-6 ${SPACING.inputBottomOffset}`} style={{ zIndex: Z_INDEX.chat }} role="complementary" aria-label="Chat input">
         <div className="mx-auto max-w-4xl w-full">
           <ConversationInput
+            ref={conversationInputRef}
             value={conversationState.userInput}
             onChange={handleInputChange}
             onSubmit={handleSubmit}

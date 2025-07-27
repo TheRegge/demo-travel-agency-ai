@@ -1,8 +1,8 @@
-export { allMockDestinations, mockDestinations, additionalDestinations } from './destinations'
+export { mockDestinations } from './destinations'
 export { fallbackTripDatabase } from './fallback-trips'
 
 // Helper functions for working with mock data
-import { allMockDestinations } from './destinations'
+import { mockDestinations } from './destinations'
 import { fallbackTripDatabase } from './fallback-trips'
 import { MockDestination, TripRecommendation } from '@/types/travel'
 
@@ -10,21 +10,21 @@ import { MockDestination, TripRecommendation } from '@/types/travel'
  * Get destinations by category
  */
 export function getDestinationsByCategory(category: MockDestination['category']): MockDestination[] {
-  return allMockDestinations.filter(dest => dest.category === category)
+  return mockDestinations.filter((dest: MockDestination) => dest.category === category)
 }
 
 /**
  * Get destinations by kid-friendly score
  */
 export function getKidFriendlyDestinations(minScore: number = 7.0): MockDestination[] {
-  return allMockDestinations.filter(dest => dest.kidFriendlyScore >= minScore)
+  return mockDestinations.filter((dest: MockDestination) => dest.kidFriendlyScore >= minScore)
 }
 
 /**
  * Get destinations within budget range
  */
 export function getDestinationsInBudget(maxBudget: number, season: 'peak' | 'shoulder' | 'offSeason' = 'shoulder'): MockDestination[] {
-  return allMockDestinations.filter(dest => dest.seasonalPricing[season] <= maxBudget)
+  return mockDestinations.filter((dest: MockDestination) => dest.seasonalPricing[season] <= maxBudget)
 }
 
 /**
@@ -109,27 +109,27 @@ export function generateMockRecommendations(criteria: {
     season = 'shoulder'
   } = criteria
 
-  let filteredDestinations = allMockDestinations
+  let filteredDestinations = mockDestinations
 
   // Filter by budget
-  filteredDestinations = filteredDestinations.filter(dest => 
+  filteredDestinations = filteredDestinations.filter((dest: MockDestination) => 
     dest.seasonalPricing[season] + dest.flightData.averageCost <= budget
   )
 
   // Filter by category if specified
   if (category) {
-    filteredDestinations = filteredDestinations.filter(dest => dest.category === category)
+    filteredDestinations = filteredDestinations.filter((dest: MockDestination) => dest.category === category)
   }
 
   // Filter by kid-friendly if requested
   if (kidFriendly) {
-    filteredDestinations = filteredDestinations.filter(dest => dest.kidFriendlyScore >= 7.0)
+    filteredDestinations = filteredDestinations.filter((dest: MockDestination) => dest.kidFriendlyScore >= 7.0)
   }
 
   // Sort by kid-friendly score and take top 3
   const topDestinations = filteredDestinations
-    .sort((a, b) => b.kidFriendlyScore - a.kidFriendlyScore)
+    .sort((a: MockDestination, b: MockDestination) => b.kidFriendlyScore - a.kidFriendlyScore)
     .slice(0, 3)
 
-  return topDestinations.map(dest => convertToTripRecommendation(dest, duration, season))
+  return topDestinations.map((dest: MockDestination) => convertToTripRecommendation(dest, duration, season))
 }
