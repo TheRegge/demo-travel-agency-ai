@@ -58,8 +58,14 @@ export const useConversation = (): UseConversationReturn => {
     })
 
     try {
+      // Format conversation history for AI service
+      const formattedHistory = state.messages.map(msg => ({
+        type: msg.type,
+        content: msg.content
+      }))
+      
       // Get AI response, passing conversation history
-      const response = await conversationService.getResponse(message, state.messages)
+      const response = await conversationService.getResponse(message, formattedHistory)
 
       if (response.success) {
         // Add AI message to conversation
@@ -126,7 +132,7 @@ export const useConversation = (): UseConversationReturn => {
       travelActions.setIsTyping(false)
       travelActions.setError(errorMessage)
     }
-  }, [travelActions])
+  }, [travelActions, state.messages])
 
   /**
    * Clear the conversation

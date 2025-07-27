@@ -36,7 +36,7 @@ export interface AIResponse {
 
 // Service interfaces
 export interface ConversationService {
-  getResponse(input: string): Promise<AIResponse>
+  getResponse(input: string, conversationHistory?: { type: string; content: string }[]): Promise<AIResponse>
   validateInput(input: string): ValidationResult
 }
 
