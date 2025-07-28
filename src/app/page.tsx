@@ -208,11 +208,13 @@ export default function HomePage() {
       </section>
 
       {/* AI Extraction Debugger - shows what the AI extracted from user input */}
-      <AIExtractionDebugger 
-        context={conversationState.conversationContext || null}
-        userInput={lastUserMessage}
-        isVisible={true}
-      />
+      {process.env.SHOW_AI_DEBUG === 'true' && (
+        <AIExtractionDebugger 
+          context={conversationState.conversationContext || null}
+          userInput={lastUserMessage}
+          isVisible={true}
+        />
+      )}
 
       {/* Trip Detail Modal */}
       <TripDetailModal
