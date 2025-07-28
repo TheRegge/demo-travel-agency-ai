@@ -8,6 +8,7 @@ export interface TripRecommendation {
   highlights: string[]
   description: string
   activities: string[]
+  activityDetails?: Activity[] // Optional rich activity objects with descriptions
   season: string
   kidFriendly: boolean
   customizations: {

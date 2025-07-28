@@ -172,6 +172,7 @@ const parseAIResponse = (responseText: string): AITripResponse => {
             : ['Sightseeing', 'Local tours', 'Cultural activities'],
         season: "spring", // Default season
         kidFriendly: true, // Default to family-friendly
+        type: "single" as const, // Add required type field
         customizations: {
           hotelType: (tripObj.customizations?.hotelType as "budget" | "standard" | "luxury") || "standard",
           activities: Array.isArray(tripObj.customizations?.activities) 

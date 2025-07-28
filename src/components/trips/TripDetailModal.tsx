@@ -121,16 +121,57 @@ export const TripDetailModal = ({
           <div>
             <h3 className="text-xl font-semibold text-gray-800 mb-3">Activities</h3>
             <div className="grid gap-3 md:grid-cols-2">
-              {trip.activities.map((activity, index) => (
-                <Card key={index} className="border-gray-200">
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-2 h-2 rounded-full bg-gradient-to-r from-sky-500 to-emerald-500"></div>
-                      <span className="text-gray-700">{activity}</span>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+              {trip.activityDetails && trip.activityDetails.length > 0 ? (
+                // Display rich activity details with descriptions when available
+                trip.activityDetails.map((activity, index) => (
+                  <Card key={activity.id} className="border-gray-200 hover:shadow-md transition-shadow">
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex items-center gap-3">
+                          <div className="w-2 h-2 rounded-full bg-gradient-to-r from-sky-500 to-emerald-500 mt-2"></div>
+                          <div className="flex-1">
+                            <h4 className="font-semibold text-gray-900 text-sm">{activity.name}</h4>
+                            <div className="flex items-center gap-2 mt-1">
+                              <span className={`px-2 py-1 text-xs rounded-md font-medium ${
+                                activity.type === 'cultural' ? 'bg-purple-100 text-purple-700' :
+                                activity.type === 'adventure' ? 'bg-green-100 text-green-700' :
+                                activity.type === 'dining' ? 'bg-orange-100 text-orange-700' :
+                                activity.type === 'relaxation' ? 'bg-blue-100 text-blue-700' :
+                                'bg-gray-100 text-gray-700'
+                              }`}>
+                                {activity.type}
+                              </span>
+                              <span className="text-xs text-gray-500">
+                                {activity.duration}h • ${activity.cost}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {activity.description && activity.description.trim() && (
+                        <p className="text-sm text-gray-600 mt-2 leading-relaxed">{activity.description}</p>
+                      )}
+                      
+                      {activity.location && (
+                        <p className="text-xs text-gray-500 mt-2">📍 {activity.location}</p>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))
+              ) : (
+                // Fallback to simple activity names when no rich details available
+                trip.activities.map((activity, index) => (
+                  <Card key={index} className="border-gray-200">
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-2 h-2 rounded-full bg-gradient-to-r from-sky-500 to-emerald-500"></div>
+                        <span className="text-gray-700">{activity}</span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
             </div>
           </div>
 

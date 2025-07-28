@@ -8,7 +8,8 @@ import { openWeatherService, WeatherData } from './openWeatherService'
 import { geoapifyService, GeoapifyPlace } from './geoapifyService'
 import { amadeusService, AmadeusFlightOffer, AmadeusHotelOffer } from './amadeusService'
 import { errorHandlingService } from './errorHandlingService'
-import { RealAPIDestination, EnhancedTripRecommendation, TripRecommendation } from '@/types/travel'
+import { RealAPIDestination, EnhancedTripRecommendation, TripRecommendation, Activity } from '@/types/travel'
+import { mockDestinations } from '@/lib/mock-data/destinations'
 
 export interface RealDataServiceOptions {
   includeWeather?: boolean
@@ -199,7 +200,121 @@ class RealDataService {
       enhanced.description = this.enhanceDescriptionWithRealData(trip.description, realData)
     }
 
+    // Populate activityDetails with rich activity objects
+    enhanced.activityDetails = await this.createActivityDetails(trip, realData)
+
     return enhanced
+  }
+
+  /**
+   * Create rich activity details from trip activities and real data
+   */
+  private async createActivityDetails(
+    trip: TripRecommendation, 
+    realData: RealAPIDestination | null
+  ): Promise<Activity[]> {
+    const activityDetails: Activity[] = []
+
+    // First, try to match activities with mock destination data
+    const mockDestination = mockDestinations.find(dest => 
+      dest.name.toLowerCase().includes(trip.destination.toLowerCase()) ||
+      trip.destination.toLowerCase().includes(dest.name.toLowerCase())
+    )
+
+    for (let i = 0; i < trip.activities.length; i++) {
+      const activityName = trip.activities[i]
+      let activityDetail: Activity | null = null
+
+      // Try to match with mock destination activities first
+      if (mockDestination) {
+        activityDetail = mockDestination.activities.find(mockActivity =>
+          mockActivity.name.toLowerCase().includes(activityName.toLowerCase()) ||
+          activityName.toLowerCase().includes(mockActivity.name.toLowerCase())
+        ) || null
+      }
+
+      // If no mock match, try to match with real attractions data
+      if (!activityDetail && realData?.attractions) {
+        const matchingAttraction = realData.attractions.find(attraction =>
+          attraction.name.toLowerCase().includes(activityName.toLowerCase()) ||
+          activityName.toLowerCase().includes(attraction.name.toLowerCase())
+        )
+
+        if (matchingAttraction) {
+          activityDetail = {
+            id: `real-${matchingAttraction.id}`,
+            name: matchingAttraction.name,
+            type: this.categorizeActivityType(matchingAttraction.categories),
+            duration: 4, // Default 4 hours for attractions
+            cost: 25, // Default cost estimate
+            ageAppropriate: true,
+            description: matchingAttraction.description || `Visit ${matchingAttraction.name}, a popular attraction in ${trip.destination}.`,
+            location: matchingAttraction.address
+          }
+        }
+      }
+
+      // If still no match, create a generic activity detail WITHOUT generic description
+      if (!activityDetail) {
+        activityDetail = {
+          id: `generic-${i}`,
+          name: activityName,
+          type: this.inferActivityType(activityName),
+          duration: 3, // Default 3 hours
+          cost: 20, // Default cost
+          ageAppropriate: true,
+          description: '' // Empty description - don't show generic "Enjoy..." text
+        }
+      }
+
+      activityDetails.push(activityDetail)
+    }
+
+    return activityDetails
+  }
+
+  /**
+   * Categorize Geoapify attraction categories to our activity types
+   */
+  private categorizeActivityType(categories: string[]): Activity['type'] {
+    const categoryLower = categories.join(' ').toLowerCase()
+    
+    if (categoryLower.includes('restaurant') || categoryLower.includes('food') || categoryLower.includes('cafe')) {
+      return 'dining'
+    }
+    if (categoryLower.includes('museum') || categoryLower.includes('historical') || categoryLower.includes('cultural')) {
+      return 'cultural'
+    }
+    if (categoryLower.includes('adventure') || categoryLower.includes('sport') || categoryLower.includes('outdoor')) {
+      return 'adventure'
+    }
+    if (categoryLower.includes('spa') || categoryLower.includes('wellness') || categoryLower.includes('beach')) {
+      return 'relaxation'
+    }
+    
+    return 'attraction' // Default
+  }
+
+  /**
+   * Infer activity type from activity name
+   */
+  private inferActivityType(activityName: string): Activity['type'] {
+    const nameLower = activityName.toLowerCase()
+    
+    if (nameLower.includes('dining') || nameLower.includes('restaurant') || nameLower.includes('food') || nameLower.includes('cuisine')) {
+      return 'dining'
+    }
+    if (nameLower.includes('museum') || nameLower.includes('history') || nameLower.includes('culture') || nameLower.includes('art')) {
+      return 'cultural'
+    }
+    if (nameLower.includes('hiking') || nameLower.includes('adventure') || nameLower.includes('climbing') || nameLower.includes('rafting')) {
+      return 'adventure'
+    }
+    if (nameLower.includes('spa') || nameLower.includes('relax') || nameLower.includes('beach') || nameLower.includes('wellness')) {
+      return 'relaxation'
+    }
+    
+    return 'attraction' // Default
   }
 
   async enhanceMultipleTrips(
