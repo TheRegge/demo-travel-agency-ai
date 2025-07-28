@@ -7,6 +7,7 @@ import { useState } from 'react'
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { TripCardProps } from '@/types/conversation'
+import { EnhancedTripRecommendation } from '@/types/travel'
 
 export const TripCard = ({
   trip,
@@ -17,6 +18,7 @@ export const TripCard = ({
   const [isHovered, setIsHovered] = useState(false)
 
   const handleSelect = () => {
+    console.log('🎯 TripCard: Card clicked for:', trip.destination)
     onSelect?.(trip)
   }
 
@@ -37,12 +39,19 @@ export const TripCard = ({
   return (
     <Card 
       className="cursor-pointer hover:shadow-xl focus:shadow-xl focus:ring-4 focus:ring-sky-500/20 focus:outline-none transition-all duration-300 transform hover:scale-[1.02] focus:scale-[1.02] bg-white border-gray-200 rounded-2xl overflow-hidden"
-      onClick={handleSelect}
-      onMouseEnter={() => setIsHovered(true)}
+      onClick={(e) => {
+        console.log('🎯 TripCard: Raw card click event fired for:', trip.destination)
+        handleSelect()
+      }}
+      onMouseEnter={() => {
+        console.log('🎯 TripCard: Mouse entered:', trip.destination)
+        setIsHovered(true)
+      }}
       onMouseLeave={() => setIsHovered(false)}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault()
+          console.log('🎯 TripCard: Keyboard activated for:', trip.destination)
           handleSelect()
         }
       }}
@@ -87,10 +96,96 @@ export const TripCard = ({
           {trip.duration} days • {formatCurrency(trip.estimatedCost)}
         </CardDescription>
 
-        {/* Description */}
+        {/* Description with real data enhancement */}
         <p className="text-gray-700 mb-4 leading-relaxed">
           {trip.description}
         </p>
+
+        {/* Data source indicators */}
+        {(trip as EnhancedTripRecommendation).dataSource ? (
+          <div className="mb-4">
+            {/* Main data source badge */}
+            <div className="flex items-center gap-2 mb-3">
+              {(trip as EnhancedTripRecommendation).dataSource === 'hybrid' ? (
+                <>
+                  <div className="w-3 h-3 rounded-full bg-gradient-to-r from-green-500 to-blue-500"></div>
+                  <span className="text-sm font-semibold text-gray-800">Enhanced with Real APIs</span>
+                  <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full font-medium">LIVE DATA</span>
+                </>
+              ) : (
+                <>
+                  <div className="w-3 h-3 rounded-full bg-gray-400"></div>
+                  <span className="text-sm font-semibold text-gray-600">Mock Data Only</span>
+                  <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full font-medium">DEMO</span>
+                </>
+              )}
+            </div>
+
+            {/* API status indicators */}
+            {(trip as EnhancedTripRecommendation).apiSources && (
+              <div className="flex flex-wrap gap-2">
+                {(trip as EnhancedTripRecommendation).apiSources.countryData && (
+                  <div className="flex items-center gap-1 px-2 py-1 bg-blue-50 border border-blue-200 rounded-md">
+                    <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                    <span className="text-xs text-blue-700 font-medium">Countries API</span>
+                  </div>
+                )}
+                {(trip as EnhancedTripRecommendation).apiSources.weatherData && (
+                  <div className="flex items-center gap-1 px-2 py-1 bg-orange-50 border border-orange-200 rounded-md">
+                    <div className="w-2 h-2 rounded-full bg-orange-500"></div>
+                    <span className="text-xs text-orange-700 font-medium">Weather API</span>
+                  </div>
+                )}
+                {(trip as EnhancedTripRecommendation).apiSources.attractionsData && (
+                  <div className="flex items-center gap-1 px-2 py-1 bg-purple-50 border border-purple-200 rounded-md">
+                    <div className="w-2 h-2 rounded-full bg-purple-500"></div>
+                    <span className="text-xs text-purple-700 font-medium">Geoapify API</span>
+                  </div>
+                )}
+                {(trip as EnhancedTripRecommendation).apiSources.flightData && (
+                  <div className="flex items-center gap-1 px-2 py-1 bg-green-50 border border-green-200 rounded-md">
+                    <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                    <span className="text-xs text-green-700 font-medium">Amadeus API</span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Quick preview of real data */}
+            {(trip as EnhancedTripRecommendation).realData && (
+              <div className="mt-3 p-2 bg-white border border-gray-200 rounded-md">
+                <div className="grid grid-cols-1 gap-1">
+                  {(trip as EnhancedTripRecommendation).realData?.weather && (
+                    <div className="text-xs text-gray-600">
+                      <span className="font-medium">Weather:</span> {(trip as EnhancedTripRecommendation).realData!.weather!.current.weather.description}, {(trip as EnhancedTripRecommendation).realData!.weather!.current.temp}°C
+                    </div>
+                  )}
+                  {(trip as EnhancedTripRecommendation).realData?.countryInfo && (
+                    <div className="text-xs text-gray-600">
+                      <span className="font-medium">Currency:</span> {(trip as EnhancedTripRecommendation).realData!.countryInfo.currency}
+                      {(trip as EnhancedTripRecommendation).realData!.countryInfo.languages.length > 0 && (
+                        <span className="ml-2">
+                          <span className="font-medium">Language:</span> {(trip as EnhancedTripRecommendation).realData!.countryInfo.languages[0]}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                  {(trip as EnhancedTripRecommendation).realData?.attractions && (trip as EnhancedTripRecommendation).realData!.attractions!.length > 0 && (
+                    <div className="text-xs text-gray-600">
+                      <span className="font-medium">Attractions:</span> {(trip as EnhancedTripRecommendation).realData!.attractions!.length} real locations • <span className="text-blue-600 font-medium">Click to see details</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        ) : (
+          /* Fallback for regular trips without API data */
+          <div className="mb-4 flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-gray-300"></div>
+            <span className="text-sm text-gray-500">Standard trip data</span>
+          </div>
+        )}
 
         {/* Highlights */}
         <div className="mb-4">

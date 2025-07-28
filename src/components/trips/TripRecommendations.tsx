@@ -3,11 +3,11 @@
  * Displays a responsive grid of trip recommendations below the homepage conversation area
  */
 
-import { useState, Suspense } from 'react'
+import { useState } from 'react'
 import { TripRecommendationsProps } from '@/types/conversation'
 import { TripRecommendation } from '@/types/travel'
 import { TripCard } from './TripCard'
-import { LazyTripDetailModal } from '@/components/lazy'
+import { TripDetailModal } from './TripDetailModal'
 import { LoadingSpinner } from '@/components/conversation/LoadingSpinner'
 
 export const TripRecommendations = ({
@@ -20,6 +20,13 @@ export const TripRecommendations = ({
   const [selectedTrip, setSelectedTrip] = useState<TripRecommendation | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
 
+  console.log('🎯 TripRecommendations: Component state:', {
+    tripsCount: trips.length,
+    isModalOpen,
+    selectedTrip: selectedTrip?.destination,
+    hasTrips: trips.length > 0
+  })
+
   // Debug logging
   console.log('TripRecommendations render:', { 
     tripsCount: trips.length, 
@@ -28,6 +35,7 @@ export const TripRecommendations = ({
   })
 
   const handleTripSelect = (trip: TripRecommendation) => {
+    console.log('🎯 TripRecommendations: Trip selected:', trip.destination)
     setSelectedTrip(trip)
     setIsModalOpen(true)
     onTripSelect?.(trip)
@@ -51,8 +59,22 @@ export const TripRecommendations = ({
   return (
     <>
       {/* Floating Debug Indicator - Top Right Corner */}
-      <div className="fixed top-4 right-4 z-50 bg-green-500 text-white px-3 py-2 rounded-lg shadow-lg text-sm font-bold">
-        🎯 Trips: {trips.length} | Loading: {isLoading ? 'YES' : 'NO'}
+      <div className="fixed top-4 right-4 z-50 space-y-2">
+        <div className="bg-green-500 text-white px-3 py-2 rounded-lg shadow-lg text-sm font-bold">
+          🎯 Trips: {trips.length} | Loading: {isLoading ? 'YES' : 'NO'}
+        </div>
+        {trips.length > 0 && (
+          <button 
+            onClick={() => {
+              console.log('🎯 Direct modal test button clicked')
+              setSelectedTrip(trips[0])
+              setIsModalOpen(true)
+            }}
+            className="bg-blue-500 text-white px-3 py-2 rounded-lg shadow-lg text-sm font-bold w-full"
+          >
+            🧪 Test Modal
+          </button>
+        )}
       </div>
 
       <section className="px-4 py-16 bg-gradient-to-b from-white to-sky-50">
@@ -77,6 +99,7 @@ export const TripRecommendations = ({
         {/* Trip Grid */}
         {!isLoading && trips.length > 0 && (
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+            {console.log('🎯 TripRecommendations: About to render', trips.length, 'trip cards')}
             {trips.map((trip) => (
               <div
                 key={trip.tripId}
@@ -88,7 +111,10 @@ export const TripRecommendations = ({
               >
                 <TripCard
                   trip={trip}
-                  onSelect={handleTripSelect}
+                  onSelect={(selectedTrip) => {
+                    console.log('🎯 TripRecommendations: onSelect callback received for:', selectedTrip.destination)
+                    handleTripSelect(selectedTrip)
+                  }}
                   onSave={onTripSave ? onTripSave : undefined}
                   isSaved={savedTripIds.includes(trip.tripId)}
                 />
@@ -125,17 +151,13 @@ export const TripRecommendations = ({
         )}
 
         {/* Trip Detail Modal */}
-        {isModalOpen && (
-          <Suspense fallback={<div className="fixed inset-0 bg-black/50 flex items-center justify-center"><LoadingSpinner size="md" /></div>}>
-            <LazyTripDetailModal
-              trip={selectedTrip}
-              isOpen={isModalOpen}
-              onClose={handleModalClose}
-              onSave={handleModalSave}
-              isSaved={selectedTrip ? savedTripIds.includes(selectedTrip.tripId) : false}
-            />
-          </Suspense>
-        )}
+        <TripDetailModal
+          trip={selectedTrip}
+          isOpen={isModalOpen}
+          onClose={handleModalClose}
+          onSave={handleModalSave}
+          isSaved={selectedTrip ? savedTripIds.includes(selectedTrip.tripId) : false}
+        />
       </div>
     </section>
     </>

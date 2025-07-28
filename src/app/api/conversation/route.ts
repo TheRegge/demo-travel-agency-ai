@@ -7,6 +7,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { queryGeminiAI, validateGeminiSetup } from '@/lib/ai/gemini'
 import { generateClarificationQuestions } from '@/services/clarificationService'
 import { analyzeUserInputWithAI, hasEnoughInfoForRecommendationsAI } from '@/services/aiAnalysisService'
+import { realDataService } from '@/services/realDataService'
 
 export async function POST(request: NextRequest) {
   try {
@@ -128,12 +129,34 @@ export async function POST(request: NextRequest) {
     // Get AI response
     const aiResponse = await queryGeminiAI(input, validHistory)
 
+    // Enhance trip recommendations with real data
+    let enhancedTrips = aiResponse.recommendations?.trips || []
+    if (enhancedTrips.length > 0) {
+      try {
+        console.log('🔄 Enhancing trips with real data...')
+        enhancedTrips = await realDataService.enhanceMultipleTrips(
+          enhancedTrips,
+          {
+            includeWeather: true,
+            includeAttractions: true,
+            includeFlights: false, // Keep false for demo to avoid API costs
+            includeHotels: false,   // Keep false for demo to avoid API costs
+            maxAttractions: 5
+          }
+        )
+        console.log('✅ Enhanced trips with real data:', enhancedTrips.length)
+      } catch (error) {
+        console.warn('⚠️ Failed to enhance trips with real data, using mock data:', error)
+        // Continue with mock data if enhancement fails
+      }
+    }
+
     // Return structured response
     return NextResponse.json({
       success: true,
       message: aiResponse.chatMessage,
       data: {
-        recommendations: aiResponse.recommendations?.trips || [],
+        recommendations: enhancedTrips,
         followUpQuestions: aiResponse.followUpQuestions || []
       },
       conversationContext: currentContext // Include context for debugging

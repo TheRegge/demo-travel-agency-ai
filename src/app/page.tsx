@@ -9,9 +9,11 @@ import { Logo } from "@/components/layout/Logo"
 import { WelcomeMessage } from "@/components/chat/WelcomeMessage"
 import { ChatMessageBubble } from "@/components/chat/ChatMessageBubble"
 import { InlineTripCard } from "@/components/trips/InlineTripCard"
+import { TripDetailModal } from "@/components/trips/TripDetailModal"
 import { useConversation } from "@/hooks"
 import { useAutoScroll } from "@/hooks/useAutoScroll"
-import { useRef, useEffect } from "react"
+import { useRef, useEffect, useState } from "react"
+import { TripRecommendation } from "@/types/travel"
 import { SPACING, Z_INDEX } from "@/lib/constants/layout"
 import { ClarificationPrompt } from "@/components/chat/ClarificationPrompt"
 import { AIExtractionDebugger } from "@/components/debug/AIExtractionDebugger"
@@ -21,6 +23,10 @@ export default function HomePage() {
   const { state: conversationState, submitMessage, updateInput, answerClarification, submitClarificationAnswers } = useConversation()
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const conversationInputRef = useRef<ConversationInputRef>(null)
+  
+  // Modal state management
+  const [selectedTrip, setSelectedTrip] = useState<TripRecommendation | null>(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
   
   // Get the last user input for debugging
   const lastUserMessage = travelState.chatHistory.filter(msg => msg.role === 'user').slice(-1)[0]?.content || conversationState.userInput
@@ -34,6 +40,12 @@ export default function HomePage() {
   }
 
   const handleTripSelect = (trip: { tripId: string }) => {
+    // Find the full trip data from the travel state
+    const fullTrip = travelState.recommendedTrips.find(t => t.tripId === trip.tripId)
+    if (fullTrip) {
+      setSelectedTrip(fullTrip)
+      setIsModalOpen(true)
+    }
     travelActions.selectTrip(trip.tripId)
   }
 
@@ -43,6 +55,15 @@ export default function HomePage() {
     } else {
       travelActions.saveTrip(tripId)
     }
+  }
+
+  const handleModalClose = () => {
+    setIsModalOpen(false)
+    setSelectedTrip(null)
+  }
+
+  const handleModalSave = (tripId: string) => {
+    handleTripSave(tripId)
   }
 
   // Use extracted auto-scroll hook
@@ -191,6 +212,15 @@ export default function HomePage() {
         context={conversationState.conversationContext || null}
         userInput={lastUserMessage}
         isVisible={true}
+      />
+
+      {/* Trip Detail Modal */}
+      <TripDetailModal
+        trip={selectedTrip}
+        isOpen={isModalOpen}
+        onClose={handleModalClose}
+        onSave={handleModalSave}
+        isSaved={selectedTrip ? travelState.savedTrips.includes(selectedTrip.tripId) : false}
       />
 
     </main>

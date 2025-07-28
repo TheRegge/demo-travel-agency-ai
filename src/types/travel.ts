@@ -250,6 +250,98 @@ export interface WeatherInfo {
   }[]
 }
 
+// Real API integration types
+export interface RealAPIDestination {
+  countryInfo: {
+    name: string
+    capital: string
+    region: string
+    currency: string
+    languages: string[]
+    timezone: string
+    coordinates: [number, number]
+    flag: string
+  }
+  weather?: {
+    current: {
+      temp: number
+      feels_like: number
+      humidity: number
+      weather: {
+        main: string
+        description: string
+        icon: string
+      }
+    }
+    forecast: Array<{
+      date: string
+      temp_min: number
+      temp_max: number
+      weather: {
+        main: string
+        description: string
+        icon: string
+      }
+    }>
+  }
+  attractions?: Array<{
+    id: string
+    name: string
+    coordinates: [number, number]
+    rating: number
+    categories: string[]
+    address?: string
+    description?: string
+    image?: string
+    url?: string
+    phone?: string
+    website?: string
+    openingHours?: string
+  }>
+  flights?: Array<{
+    id: string
+    price: number
+    currency: string
+    duration: string
+    stops: number
+    airline: string
+    departure: {
+      airport: string
+      time: string
+      date: string
+    }
+    arrival: {
+      airport: string
+      time: string
+      date: string
+    }
+  }>
+  hotels?: Array<{
+    id: string
+    name: string
+    rating?: string
+    address: string
+    coordinates: [number, number]
+    minPrice: number
+    currency: string
+    amenities?: string[]
+  }>
+}
+
+// Enhanced trip recommendation with real data
+export interface EnhancedTripRecommendation extends TripRecommendation {
+  realData?: RealAPIDestination
+  dataSource: 'mock' | 'real' | 'hybrid'
+  lastUpdated?: Date
+  apiSources: {
+    countryData: boolean
+    weatherData: boolean
+    attractionsData: boolean
+    flightData: boolean
+    hotelData: boolean
+  }
+}
+
 export interface PriceBreakdown {
   flights: number
   accommodation: number
