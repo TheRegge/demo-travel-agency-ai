@@ -386,15 +386,21 @@ class RealDataService {
 
   private async getHotelDataForDestination(cityName: string): Promise<any[]> {
     try {
-      // Get city code for hotels - simplified approach
+      // Resolve city name to proper IATA city code
+      const cityCode = amadeusService.resolveCityCode(cityName)
+      if (!cityCode) {
+        console.log(`No city code mapping found for "${cityName}", skipping hotel search`)
+        return []
+      }
+
       const checkIn = new Date()
       checkIn.setDate(checkIn.getDate() + 30)
       const checkOut = new Date(checkIn)
       checkOut.setDate(checkOut.getDate() + 3)
 
-      // This would need proper city code mapping in a real implementation
+      console.log(`Searching hotels for ${cityName} (${cityCode})`)
       const hotels = await amadeusService.searchHotels(
-        cityName.substring(0, 3).toUpperCase(), // Simplified city code
+        cityCode,
         checkIn.toISOString().split('T')[0],
         checkOut.toISOString().split('T')[0],
         2
@@ -402,7 +408,7 @@ class RealDataService {
 
       return hotels.map(hotel => amadeusService.formatHotelOfferForDisplay(hotel))
     } catch (error) {
-      console.error('Error fetching hotel data:', error)
+      console.error(`Error fetching hotel data for "${cityName}":`, error)
       return []
     }
   }

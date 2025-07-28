@@ -318,7 +318,9 @@ class AmadeusService {
       );
 
       if (!response.ok) {
-        throw new Error(`Amadeus hotels API error: ${response.status}`);
+        const errorText = await response.text();
+        console.error(`Amadeus hotels API error: ${response.status}`, errorText);
+        throw new Error(`Amadeus hotels API error: ${response.status} - ${errorText}`);
       }
 
       const data = await response.json();
@@ -443,6 +445,102 @@ class AmadeusService {
       'FRA': 'Frankfurt',
       'AMS': 'Amsterdam',
     };
+  }
+
+  /**
+   * Get IATA city codes for hotel searches
+   */
+  getCityCodeMapping(): { [key: string]: string } {
+    return {
+      // Major cities
+      'paris': 'PAR',
+      'london': 'LON',
+      'rome': 'ROM',
+      'madrid': 'MAD',
+      'barcelona': 'BCN',
+      'amsterdam': 'AMS',
+      'berlin': 'BER',
+      'vienna': 'VIE',
+      'prague': 'PRG',
+      'budapest': 'BUD',
+      'lisbon': 'LIS',
+      'dublin': 'DUB',
+      'stockholm': 'STO',
+      'copenhagen': 'CPH',
+      'oslo': 'OSL',
+      'helsinki': 'HEL',
+      'warsaw': 'WAW',
+      'moscow': 'MOW',
+      'istanbul': 'IST',
+      'athens': 'ATH',
+      'cairo': 'CAI',
+      'dubai': 'DXB',
+      'doha': 'DOH',
+      'mumbai': 'BOM',
+      'delhi': 'DEL',
+      'bangkok': 'BKK',
+      'singapore': 'SIN',
+      'hong kong': 'HKG',
+      'beijing': 'BJS',
+      'shanghai': 'SHA',
+      'tokyo': 'TYO',
+      'osaka': 'OSA',
+      'seoul': 'SEL',
+      'sydney': 'SYD',
+      'melbourne': 'MEL',
+      'auckland': 'AKL',
+      // Americas
+      'new york': 'NYC',
+      'los angeles': 'LAX',
+      'chicago': 'CHI',
+      'miami': 'MIA',
+      'san francisco': 'SFO',
+      'toronto': 'YTO',
+      'vancouver': 'YVR',
+      'montreal': 'YMQ',
+      'mexico city': 'MEX',
+      'cancun': 'CUN',
+      'buenos aires': 'BUE',
+      'rio de janeiro': 'RIO',
+      'sao paulo': 'SAO',
+      'lima': 'LIM',
+      'bogota': 'BOG',
+      // Africa
+      'johannesburg': 'JNB',
+      'cape town': 'CPT',
+      'casablanca': 'CAS',
+      'marrakech': 'RAK',
+      'nairobi': 'NBO',
+      'addis ababa': 'ADD'
+    };
+  }
+
+  /**
+   * Resolve city name to IATA city code for hotel searches
+   */
+  resolveCityCode(cityName: string): string | null {
+    const normalizedName = cityName.toLowerCase().trim();
+    const cityMapping = this.getCityCodeMapping();
+    
+    console.log(`Resolving city code for: "${cityName}" (normalized: "${normalizedName}")`)
+    
+    // Direct match
+    if (cityMapping[normalizedName]) {
+      console.log(`Direct match found: ${cityMapping[normalizedName]}`)
+      return cityMapping[normalizedName];
+    }
+    
+    // Try to find partial matches
+    for (const [city, code] of Object.entries(cityMapping)) {
+      if (normalizedName.includes(city) || city.includes(normalizedName)) {
+        console.log(`Partial match found: "${city}" -> ${code}`)
+        return code;
+      }
+    }
+    
+    // If no match found, return null to indicate we should skip hotel search
+    console.log(`No city code match found for: "${cityName}"`)
+    return null;
   }
 }
 
