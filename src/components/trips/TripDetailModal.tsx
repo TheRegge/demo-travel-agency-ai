@@ -382,7 +382,7 @@ export const TripDetailModal = ({
           </div>
         </div>
 
-        <DialogFooter className="pt-6">
+        <DialogFooter className="p-8 pt-2 mt-8">
           <Button variant="outline" onClick={onClose}>
             Close
           </Button>
