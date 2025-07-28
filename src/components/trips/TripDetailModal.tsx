@@ -117,6 +117,129 @@ export const TripDetailModal = ({
             </div>
           </div>
 
+          {/* Flights and Hotels Section */}
+          {((trip as EnhancedTripRecommendation).realData?.flights || (trip as EnhancedTripRecommendation).realData?.hotels) && (
+            <div className="grid gap-6 lg:grid-cols-2">
+              {/* Flights Section */}
+              {(trip as EnhancedTripRecommendation).realData?.flights && (trip as EnhancedTripRecommendation).realData!.flights!.length > 0 && (
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                    <svg className="w-5 h-5 text-sky-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                    </svg>
+                    Available Flights
+                  </h3>
+                  <div className="space-y-3">
+                    {(trip as EnhancedTripRecommendation).realData!.flights!.slice(0, 2).map((flight) => (
+                      <Card key={flight.id} className="border-sky-200 hover:shadow-md transition-shadow overflow-hidden">
+                        <CardContent className="p-4">
+                          <div className="flex items-start justify-between mb-3">
+                            <div className="flex items-center gap-3">
+                              <div className="w-12 h-12 bg-sky-100 rounded-lg flex items-center justify-center">
+                                <span className="text-sm font-bold text-sky-700">{flight.airline}</span>
+                              </div>
+                              <div>
+                                <p className="font-semibold text-gray-900 text-lg">{formatCurrency(flight.price)}</p>
+                                <p className="text-xs text-gray-500">{flight.stops === 0 ? 'Direct' : `${flight.stops} stop${flight.stops > 1 ? 's' : ''}`}</p>
+                              </div>
+                            </div>
+                            <span className="text-xs text-sky-600 bg-sky-50 px-2 py-1 rounded-md">
+                              {flight.duration.replace('PT', '').replace('H', 'h ').replace('M', 'm')}
+                            </span>
+                          </div>
+                          
+                          <div className="grid grid-cols-2 gap-4 text-sm">
+                            <div>
+                              <p className="text-gray-500 text-xs mb-1">Departure</p>
+                              <p className="font-medium text-gray-900">{flight.departure.airport}</p>
+                              <p className="text-xs text-gray-600">{flight.departure.time}</p>
+                              <p className="text-xs text-gray-500">{flight.departure.date}</p>
+                            </div>
+                            <div>
+                              <p className="text-gray-500 text-xs mb-1">Arrival</p>
+                              <p className="font-medium text-gray-900">{flight.arrival.airport}</p>
+                              <p className="text-xs text-gray-600">{flight.arrival.time}</p>
+                              <p className="text-xs text-gray-500">{flight.arrival.date}</p>
+                            </div>
+                          </div>
+                          
+                          <div className="mt-3 flex items-center justify-between">
+                            <div className="text-xs text-sky-600 bg-sky-50 px-2 py-1 rounded-md">
+                              {(trip as EnhancedTripRecommendation).apiSources.flightData ? 'Live from Amadeus' : 'Sample Data'}
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Hotels Section */}
+              {(trip as EnhancedTripRecommendation).realData?.hotels && (trip as EnhancedTripRecommendation).realData!.hotels!.length > 0 && (
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                    <svg className="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                    </svg>
+                    Recommended Hotels
+                  </h3>
+                  <div className="space-y-3">
+                    {(trip as EnhancedTripRecommendation).realData!.hotels!.slice(0, 3).map((hotel) => (
+                      <Card key={hotel.id} className="border-emerald-200 hover:shadow-md transition-shadow overflow-hidden">
+                        <CardContent className="p-4">
+                          <div className="flex items-start justify-between mb-2">
+                            <div className="flex-1">
+                              <h4 className="font-semibold text-gray-900 text-sm leading-tight">{hotel.name}</h4>
+                              <p className="text-xs text-gray-500 mt-1">{hotel.address}</p>
+                            </div>
+                            {hotel.rating && (
+                              <div className="flex items-center gap-1 ml-2">
+                                <svg className="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                </svg>
+                                <span className="text-sm font-medium text-gray-700">{hotel.rating}</span>
+                              </div>
+                            )}
+                          </div>
+                          
+                          <div className="flex items-end justify-between mt-3">
+                            <div>
+                              <p className="text-xs text-gray-500">Starting from</p>
+                              <p className="text-lg font-bold text-emerald-600">{formatCurrency(hotel.minPrice)}</p>
+                              <p className="text-xs text-gray-500">per night</p>
+                            </div>
+                            
+                            {hotel.amenities && hotel.amenities.length > 0 && (
+                              <div className="flex flex-wrap gap-1 justify-end max-w-[60%]">
+                                {hotel.amenities.slice(0, 3).map((amenity, i) => (
+                                  <span key={i} className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-md">
+                                    {amenity}
+                                  </span>
+                                ))}
+                                {hotel.amenities.length > 3 && (
+                                  <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-md">
+                                    +{hotel.amenities.length - 3}
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                          
+                          <div className="mt-3">
+                            <div className="text-xs text-emerald-600 bg-emerald-50 px-2 py-1 rounded-md inline-block">
+                              {(trip as EnhancedTripRecommendation).apiSources.hotelData ? 'Live from Amadeus' : 'Sample Data'}
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Activities */}
           <div>
             <h3 className="text-xl font-semibold text-gray-800 mb-3">Activities</h3>

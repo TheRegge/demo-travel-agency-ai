@@ -135,6 +135,38 @@ class ErrorHandlingService {
     )
   }
 
+  async getFlightDataWithFallback(
+    cityName: string,
+    apiCall: (cityName: string) => Promise<any[]>
+  ): Promise<any[]> {
+    return this.withFallback(
+      () => apiCall(cityName),
+      () => this.getMockFlightData(cityName),
+      'FlightData',
+      {
+        retryAttempts: 2,
+        retryDelay: 2000, // Longer delay for rate limiting
+        fallbackToMock: true
+      }
+    )
+  }
+
+  async getHotelDataWithFallback(
+    cityName: string,
+    apiCall: (cityName: string) => Promise<any[]>
+  ): Promise<any[]> {
+    return this.withFallback(
+      () => apiCall(cityName),
+      () => this.getMockHotelData(cityName),
+      'HotelData',
+      {
+        retryAttempts: 2,
+        retryDelay: 2000, // Longer delay for rate limiting
+        fallbackToMock: true
+      }
+    )
+  }
+
   private createMockEnhancedTrips(trips: TripRecommendation[]): EnhancedTripRecommendation[] {
     return trips.map(trip => ({
       ...trip,
@@ -248,6 +280,93 @@ class ErrorHandlingService {
         description: 'Fascinating local history and culture'
       }
     ]
+  }
+
+  private getMockFlightData(cityName: string): any[] {
+    // Generate mock flight data based on city
+    const flightOptions = [
+      {
+        id: `mock-flight-${cityName}-1`,
+        price: 450 + Math.floor(Math.random() * 300),
+        currency: 'USD',
+        duration: 'PT8H15M',
+        stops: 0,
+        airline: 'AA',
+        departure: {
+          airport: 'NYC',
+          time: '10:30 AM',
+          date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString()
+        },
+        arrival: {
+          airport: cityName.slice(0, 3).toUpperCase(),
+          time: '6:45 PM',
+          date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString()
+        },
+        segments: []
+      },
+      {
+        id: `mock-flight-${cityName}-2`,
+        price: 380 + Math.floor(Math.random() * 250),
+        currency: 'USD',
+        duration: 'PT10H45M',
+        stops: 1,
+        airline: 'DL',
+        departure: {
+          airport: 'NYC',
+          time: '2:15 PM',
+          date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString()
+        },
+        arrival: {
+          airport: cityName.slice(0, 3).toUpperCase(),
+          time: '11:00 PM',
+          date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString()
+        },
+        segments: []
+      }
+    ]
+    
+    return flightOptions
+  }
+
+  private getMockHotelData(cityName: string): any[] {
+    // Generate mock hotel data based on city
+    const hotelOptions = [
+      {
+        id: `mock-hotel-${cityName}-1`,
+        name: `Grand ${cityName} Hotel`,
+        rating: '4',
+        address: `123 Main Street, ${cityName}`,
+        coordinates: [0, 0],
+        minPrice: 120 + Math.floor(Math.random() * 200),
+        currency: 'USD',
+        offers: [],
+        amenities: ['WiFi', 'Pool', 'Gym', 'Restaurant']
+      },
+      {
+        id: `mock-hotel-${cityName}-2`,
+        name: `${cityName} Inn & Suites`,
+        rating: '3',
+        address: `456 Central Avenue, ${cityName}`,
+        coordinates: [0, 0],
+        minPrice: 85 + Math.floor(Math.random() * 150),
+        currency: 'USD',
+        offers: [],
+        amenities: ['WiFi', 'Breakfast', 'Parking']
+      },
+      {
+        id: `mock-hotel-${cityName}-3`,
+        name: `Historic ${cityName} Lodge`,
+        rating: '5',
+        address: `789 Heritage Square, ${cityName}`,
+        coordinates: [0, 0],
+        minPrice: 220 + Math.floor(Math.random() * 180),
+        currency: 'USD',
+        offers: [],
+        amenities: ['WiFi', 'Spa', 'Fine Dining', 'Concierge', 'Valet']
+      }
+    ]
+    
+    return hotelOptions
   }
 
   private logError(serviceName: string, error: Error, fallbackUsed: boolean): void {

@@ -196,6 +196,56 @@ class AmadeusService {
     }
   }
 
+  private async withRateLimitHandling(
+    apiCall: () => Promise<Response>,
+    retryAttempts: number = 3
+  ): Promise<Response> {
+    let lastError: Error | null = null
+
+    for (let attempt = 1; attempt <= retryAttempts; attempt++) {
+      try {
+        const response = await apiCall()
+        
+        // If successful, return immediately
+        if (response.ok) {
+          return response
+        }
+        
+        // Handle rate limiting specifically
+        if (response.status === 429) {
+          const retryAfter = response.headers.get('Retry-After')
+          const delay = retryAfter ? parseInt(retryAfter) * 1000 : Math.pow(2, attempt) * 1000
+          
+          console.warn(`Amadeus API rate limit hit (429). Attempt ${attempt}/${retryAttempts}. Waiting ${delay}ms`)
+          
+          if (attempt < retryAttempts) {
+            await this.delay(delay)
+            continue
+          }
+        }
+        
+        // For other HTTP errors, throw immediately
+        throw new Error(`Amadeus API error: ${response.status}`)
+        
+      } catch (error) {
+        lastError = error as Error
+        
+        // For network errors, use exponential backoff
+        if (attempt < retryAttempts) {
+          const delay = Math.pow(2, attempt) * 1000
+          console.warn(`Amadeus API network error. Attempt ${attempt}/${retryAttempts}. Waiting ${delay}ms`)
+          await this.delay(delay)
+        }
+      }
+    }
+
+    throw lastError || new Error('Amadeus API request failed after all retries')
+  }
+
+  private delay(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms))
+  }
+
   private async getAccessToken(): Promise<string | null> {
     if (!this.apiKey || !this.apiSecret) {
       return null;
@@ -261,19 +311,14 @@ class AmadeusService {
         params.append('returnDate', returnDate);
       }
 
-      const response = await fetch(
-        `${this.baseUrl}/shopping/flight-offers?${params}`,
-        {
+      const response = await this.withRateLimitHandling(() => 
+        fetch(`${this.baseUrl}/shopping/flight-offers?${params}`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
           },
-        }
+        })
       );
-
-      if (!response.ok) {
-        throw new Error(`Amadeus flights API error: ${response.status}`);
-      }
 
       const data = await response.json();
       return data.data || [];
@@ -307,21 +352,14 @@ class AmadeusService {
         currency: 'USD'
       });
 
-      const response = await fetch(
-        `${this.baseUrl}/shopping/hotel-offers?${params}`,
-        {
+      const response = await this.withRateLimitHandling(() =>
+        fetch(`${this.baseUrl}/shopping/hotel-offers?${params}`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
           },
-        }
+        })
       );
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error(`Amadeus hotels API error: ${response.status}`, errorText);
-        throw new Error(`Amadeus hotels API error: ${response.status} - ${errorText}`);
-      }
 
       const data = await response.json();
       return data.data || [];
@@ -338,19 +376,17 @@ class AmadeusService {
     }
 
     try {
-      const response = await fetch(
-        `https://test.api.amadeus.com/v1/reference-data/locations?subType=AIRPORT&keyword=${encodeURIComponent(keyword)}`,
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        }
+      const response = await this.withRateLimitHandling(() =>
+        fetch(
+          `https://test.api.amadeus.com/v1/reference-data/locations?subType=AIRPORT&keyword=${encodeURIComponent(keyword)}`,
+          {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          }
+        )
       );
-
-      if (!response.ok) {
-        throw new Error(`Amadeus airports API error: ${response.status}`);
-      }
 
       const data = await response.json();
       return data.data || [];

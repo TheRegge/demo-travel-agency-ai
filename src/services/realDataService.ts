@@ -355,62 +355,61 @@ class RealDataService {
   }
 
   private async getFlightDataForDestination(cityName: string): Promise<any[]> {
-    try {
-      // This would require departure airport - simplified for demo
-      // In a real implementation, you'd need user's location or selected departure city
-      const airports = await amadeusService.getAirportInfo(cityName)
-      if (airports.length === 0) {
-        return []
+    return errorHandlingService.getFlightDataWithFallback(
+      cityName,
+      async (city) => {
+        // This would require departure airport - simplified for demo
+        // In a real implementation, you'd need user's location or selected departure city
+        const airports = await amadeusService.getAirportInfo(city)
+        if (airports.length === 0) {
+          throw new Error(`No airports found for ${city}`)
+        }
+
+        // Mock flight search from a major hub (would be dynamic in real app)
+        const destinationCode = airports[0].iataCode
+        const departureDate = new Date()
+        departureDate.setDate(departureDate.getDate() + 30) // 30 days from now
+
+        const flights = await amadeusService.searchFlights(
+          'NYC', // Mock departure - would be dynamic
+          destinationCode,
+          departureDate.toISOString().split('T')[0],
+          undefined,
+          1,
+          5
+        )
+
+        return flights.map(flight => amadeusService.formatFlightOfferForDisplay(flight))
       }
-
-      // Mock flight search from a major hub (would be dynamic in real app)
-      const destinationCode = airports[0].iataCode
-      const departureDate = new Date()
-      departureDate.setDate(departureDate.getDate() + 30) // 30 days from now
-
-      const flights = await amadeusService.searchFlights(
-        'NYC', // Mock departure - would be dynamic
-        destinationCode,
-        departureDate.toISOString().split('T')[0],
-        undefined,
-        1,
-        5
-      )
-
-      return flights.map(flight => amadeusService.formatFlightOfferForDisplay(flight))
-    } catch (error) {
-      console.error('Error fetching flight data:', error)
-      return []
-    }
+    )
   }
 
   private async getHotelDataForDestination(cityName: string): Promise<any[]> {
-    try {
-      // Resolve city name to proper IATA city code
-      const cityCode = amadeusService.resolveCityCode(cityName)
-      if (!cityCode) {
-        console.log(`No city code mapping found for "${cityName}", skipping hotel search`)
-        return []
+    return errorHandlingService.getHotelDataWithFallback(
+      cityName,
+      async (city) => {
+        // Resolve city name to proper IATA city code
+        const cityCode = amadeusService.resolveCityCode(city)
+        if (!cityCode) {
+          throw new Error(`No city code mapping found for "${city}"`)
+        }
+
+        const checkIn = new Date()
+        checkIn.setDate(checkIn.getDate() + 30)
+        const checkOut = new Date(checkIn)
+        checkOut.setDate(checkOut.getDate() + 3)
+
+        console.log(`Searching hotels for ${city} (${cityCode})`)
+        const hotels = await amadeusService.searchHotels(
+          cityCode,
+          checkIn.toISOString().split('T')[0],
+          checkOut.toISOString().split('T')[0],
+          2
+        )
+
+        return hotels.map(hotel => amadeusService.formatHotelOfferForDisplay(hotel))
       }
-
-      const checkIn = new Date()
-      checkIn.setDate(checkIn.getDate() + 30)
-      const checkOut = new Date(checkIn)
-      checkOut.setDate(checkOut.getDate() + 3)
-
-      console.log(`Searching hotels for ${cityName} (${cityCode})`)
-      const hotels = await amadeusService.searchHotels(
-        cityCode,
-        checkIn.toISOString().split('T')[0],
-        checkOut.toISOString().split('T')[0],
-        2
-      )
-
-      return hotels.map(hotel => amadeusService.formatHotelOfferForDisplay(hotel))
-    } catch (error) {
-      console.error(`Error fetching hotel data for "${cityName}":`, error)
-      return []
-    }
+    )
   }
 
   private enhanceDescriptionWithRealData(
