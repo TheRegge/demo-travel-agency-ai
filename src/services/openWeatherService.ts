@@ -66,7 +66,7 @@ class OpenWeatherService {
 
     try {
       const response = await fetch(
-        `${this.baseUrl}/weather?lat=${lat}&lon=${lon}&appid=${this.apiKey}&units=metric`
+        `${this.baseUrl}/weather?lat=${lat}&lon=${lon}&appid=${this.apiKey}&units=imperial`
       );
 
       if (!response.ok) {
@@ -89,7 +89,7 @@ class OpenWeatherService {
 
     try {
       const response = await fetch(
-        `${this.baseUrl}/forecast?lat=${lat}&lon=${lon}&appid=${this.apiKey}&units=metric&cnt=${days * 8}` // 8 forecasts per day (3-hour intervals)
+        `${this.baseUrl}/forecast?lat=${lat}&lon=${lon}&appid=${this.apiKey}&units=imperial&cnt=${days * 8}` // 8 forecasts per day (3-hour intervals)
       );
 
       if (!response.ok) {
@@ -113,7 +113,7 @@ class OpenWeatherService {
     try {
       const location = countryCode ? `${cityName},${countryCode}` : cityName;
       const response = await fetch(
-        `${this.baseUrl}/weather?q=${encodeURIComponent(location)}&appid=${this.apiKey}&units=metric`
+        `${this.baseUrl}/weather?q=${encodeURIComponent(location)}&appid=${this.apiKey}&units=imperial`
       );
 
       if (!response.ok) {

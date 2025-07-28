@@ -230,7 +230,7 @@ export const TripCard = ({
                 <div className="grid grid-cols-1 gap-1">
                   {(trip as EnhancedTripRecommendation).realData?.weather && (
                     <div className="text-xs text-gray-600">
-                      <span className="font-medium">Weather:</span> {(trip as EnhancedTripRecommendation).realData!.weather!.current.weather.description}, {(trip as EnhancedTripRecommendation).realData!.weather!.current.temp}°C
+                      <span className="font-medium">Weather:</span> {(trip as EnhancedTripRecommendation).realData!.weather!.current.weather.description}, {(trip as EnhancedTripRecommendation).realData!.weather!.current.temp}°F
                     </div>
                   )}
                   {(trip as EnhancedTripRecommendation).realData?.countryInfo && (

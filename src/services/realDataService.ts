@@ -301,7 +301,7 @@ class RealDataService {
     // Add weather information if available
     if (realData.weather?.current) {
       const weather = realData.weather.current
-      enhanced += ` Currently experiencing ${weather.weather.description} with temperatures around ${weather.temp}°C.`
+      enhanced += ` Currently experiencing ${weather.weather.description} with temperatures around ${weather.temp}°F.`
     }
 
     // Add currency information

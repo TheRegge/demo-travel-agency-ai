@@ -237,7 +237,7 @@ export const TripDetailModal = ({
                         <div className="flex items-center gap-4">
                           <div className="text-center">
                             <p className="text-4xl font-bold text-gray-900">
-                              {(trip as EnhancedTripRecommendation).realData!.weather!.current.temp}°C
+                              {(trip as EnhancedTripRecommendation).realData!.weather!.current.temp}°F
                             </p>
                             <p className="text-sm text-gray-600 capitalize">
                               {(trip as EnhancedTripRecommendation).realData!.weather!.current.weather.description}
@@ -245,7 +245,7 @@ export const TripDetailModal = ({
                           </div>
                           <div className="text-left">
                             <div className="space-y-1 text-sm text-gray-600">
-                              <p><span className="font-medium">Feels like:</span> {(trip as EnhancedTripRecommendation).realData!.weather!.current.feels_like}°C</p>
+                              <p><span className="font-medium">Feels like:</span> {(trip as EnhancedTripRecommendation).realData!.weather!.current.feels_like}°F</p>
                               <p><span className="font-medium">Humidity:</span> {(trip as EnhancedTripRecommendation).realData!.weather!.current.humidity}%</p>
                             </div>
                           </div>
