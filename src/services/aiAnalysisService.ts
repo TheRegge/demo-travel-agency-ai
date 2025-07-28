@@ -6,6 +6,7 @@
 import { google } from '@ai-sdk/google'
 import { generateText } from 'ai'
 import { ConversationContext, ExtractedTravelInfo, ClarificationQuestionType } from '@/types/travel'
+import { destinationResolutionService } from './destinationResolutionService'
 
 interface AIAnalysisResult {
   destinations: string[]
@@ -147,10 +148,25 @@ export async function analyzeUserInputWithAI(
     console.log('🤖 AI Analysis: Raw AI response:', text)
     console.log('🤖 AI Analysis: Parsed result:', analysisResult)
 
+    // Enhance destinations with real location data
+    let enhancedDestinations = analysisResult.destinations
+    try {
+      if (analysisResult.destinations.length > 0) {
+        console.log('🌍 Resolving destinations:', analysisResult.destinations)
+        const resolved = await destinationResolutionService.resolveDestination(userInput)
+        if (resolved.length > 0) {
+          enhancedDestinations = resolved.map(dest => dest.name)
+          console.log('🌍 Enhanced destinations:', enhancedDestinations)
+        }
+      }
+    } catch (error) {
+      console.warn('🌍 Failed to resolve destinations, using AI extracted ones:', error)
+    }
+
     // Convert to ConversationContext format
     const context: ConversationContext = {
       userIntent: {
-        destinations: analysisResult.destinations,
+        destinations: enhancedDestinations,
         keywords: analysisResult.keywords,
         ambiguityLevel: analysisResult.ambiguityLevel,
         tripTypeHint: analysisResult.tripType

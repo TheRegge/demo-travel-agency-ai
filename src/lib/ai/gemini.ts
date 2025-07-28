@@ -10,18 +10,20 @@ import { mockDestinations } from '@/lib/mock-data/destinations'
 
 /**
  * System prompt for travel planning assistant
- * Based on PRD specifications (lines 275-320)
+ * Updated to handle worldwide destinations beyond mock data catalog
  */
 const SYSTEM_PROMPT = `
 You are TravelGenius, an expert travel planning assistant for DreamVoyager Travel.
 
-CONTEXT: You work with a curated catalog of destinations, hotels, and activities.
+CONTEXT: You have access to worldwide travel destinations and can recommend trips to any location globally.
 PERSONALITY: Professional, helpful, and genuinely excited about travel.
-CAPABILITIES: Budget analysis, family planning, seasonal recommendations, graceful budget handling.
+CAPABILITIES: Budget analysis, family planning, seasonal recommendations, graceful budget handling, worldwide destination expertise.
 
 RESPONSE FORMAT: You MUST respond with valid JSON matching the schema below.
 
 BUDGET SENSITIVITY: Never dismiss a user's budget as "impossible". Always provide alternatives within their stated range and offer creative solutions like different destinations, timing, or trip length. Maintain enthusiasm for travel regardless of budget constraints.
+
+DESTINATION FLEXIBILITY: You can recommend ANY worldwide destination. Create appropriate trip IDs and provide detailed, realistic information for any location the user requests.
 
 TASK: Create personalized travel recommendations based on user input.
 
@@ -31,15 +33,15 @@ OUTPUT SCHEMA:
   "recommendations": {
     "trips": [
       {
-        "tripId": "exact ID from AVAILABLE DESTINATIONS",
-        "destination": "Destination name",
+        "tripId": "unique-trip-identifier",
+        "destination": "Any worldwide destination name",
         "duration": "number of days",
-        "estimatedCost": "total cost in USD",
-        "highlights": ["key feature 1", "key feature 2"],
+        "estimatedCost": "realistic total cost in USD",
+        "highlights": ["key feature 1", "key feature 2", "key feature 3"],
         "customizations": {
           "departureDate": "YYYY-MM-DD or null",
           "hotelType": "budget|standard|luxury",
-          "activities": ["activity1", "activity2"]
+          "activities": ["activity1", "activity2", "activity3"]
         },
         "score": "relevance score 0-100"
       }
@@ -51,19 +53,26 @@ OUTPUT SCHEMA:
 
 IMPORTANT: 
 - Always return valid JSON
-- Only use tripIds from AVAILABLE DESTINATIONS
+- You can recommend ANY worldwide destination (Mexico, Europe, Asia, etc.)
+- Generate unique tripIds for each recommendation
 - Include 2-3 trip recommendations when possible
 - Sort trips by relevance score (highest first)
 - For low budgets, suggest alternatives and upgrade paths
 - Maintain optimism and helpfulness regardless of budget
+- Use realistic pricing for any destination you recommend
 `
 
 /**
- * Generate enhanced prompt with mock destination data
+ * Generate enhanced prompt for worldwide destination support
  */
 const createEnhancedPrompt = (userInput: string, conversationHistory: { type: string; content: string }[] = []): string => {
-  // Create available destinations list for AI context
-  const availableDestinations = mockDestinations.map(dest => ({
+  // Build conversation context
+  const contextHistory = conversationHistory.length > 0 
+    ? `\nCONVERSATION HISTORY:\n${conversationHistory.map(msg => `${msg.type.toUpperCase()}: ${msg.content}`).join('\n')}\n`
+    : ''
+
+  // Include sample destinations as reference for format, but not as restrictions
+  const sampleDestinations = mockDestinations.slice(0, 3).map(dest => ({
     id: dest.id,
     name: dest.name,
     category: dest.category,
@@ -73,16 +82,19 @@ const createEnhancedPrompt = (userInput: string, conversationHistory: { type: st
     activities: dest.activities.slice(0, 3).map(activity => activity.name)
   }))
 
-  // Build conversation context
-  const contextHistory = conversationHistory.length > 0 
-    ? `\nCONVERSATION HISTORY:\n${conversationHistory.map(msg => `${msg.type.toUpperCase()}: ${msg.content}`).join('\n')}\n`
-    : ''
-
   return `
 ${SYSTEM_PROMPT}
 
-AVAILABLE DESTINATIONS:
-${JSON.stringify(availableDestinations, null, 2)}
+EXAMPLE DESTINATION FORMAT (you can recommend ANY destination worldwide, not limited to these):
+${JSON.stringify(sampleDestinations, null, 2)}
+
+DESTINATION GUIDANCE:
+- You can recommend ANY city, country, or region worldwide
+- For Mexico: Cancun, Puerto Vallarta, Mexico City, Playa del Carmen, Tulum, etc.
+- For Europe: Paris, Rome, Barcelona, Amsterdam, Prague, etc.
+- For Asia: Tokyo, Bangkok, Singapore, Bali, etc.
+- Generate realistic pricing based on actual destination costs
+- Consider seasonal factors, local activities, and cultural highlights
 
 ${contextHistory}
 
@@ -115,20 +127,21 @@ const parseAIResponse = (responseText: string): AITripResponse => {
       parsed.recommendations.trips = []
     }
 
-    // Validate trip recommendations against mock destinations
+    // Validate trip recommendations structure (no longer restricted to mock destinations)
     const validTrips = parsed.recommendations.trips.filter((trip: unknown) => {
-      if (typeof trip !== 'object' || trip === null || !('tripId' in trip)) {
+      if (typeof trip !== 'object' || trip === null || !('tripId' in trip) || !('destination' in trip)) {
         return false
       }
-      const tripObj = trip as { tripId: string }
-      const destination = mockDestinations.find(dest => dest.id === tripObj.tripId)
-      return destination !== undefined
+      const tripObj = trip as { tripId: string; destination: string }
+      // Basic validation - just ensure we have required fields
+      return tripObj.tripId && tripObj.destination && tripObj.destination.trim().length > 0
     })
 
-    // Map to proper TripRecommendation structure
+    // Map to proper TripRecommendation structure for worldwide destinations
     const recommendations: TripRecommendation[] = validTrips.map((trip: unknown) => {
       const tripObj = trip as {
         tripId: string
+        destination: string
         duration?: number
         estimatedCost?: number
         highlights?: string[]
@@ -139,23 +152,33 @@ const parseAIResponse = (responseText: string): AITripResponse => {
         }
         score?: number
       }
-      const destination = mockDestinations.find(dest => dest.id === tripObj.tripId)!
+      
+      // Generate a unique trip ID if not provided or enhance existing one
+      const uniqueTripId = tripObj.tripId.includes('trip-') 
+        ? tripObj.tripId 
+        : `trip-${tripObj.tripId}-${Date.now()}`
       
       return {
-        tripId: `trip-${tripObj.tripId}-${Date.now()}`,
-        destination: destination.name,
+        tripId: uniqueTripId,
+        destination: tripObj.destination,
         duration: Number(tripObj.duration) || 5,
-        estimatedCost: Number(tripObj.estimatedCost) || destination.seasonalPricing.shoulder,
-        highlights: Array.isArray(tripObj.highlights) ? tripObj.highlights : destination.activities.slice(0, 3).map(a => a.name),
-        description: destination.description,
-        activities: destination.activities.slice(0, 5).map(a => a.name),
+        estimatedCost: Number(tripObj.estimatedCost) || 2500, // Default reasonable cost
+        highlights: Array.isArray(tripObj.highlights) ? tripObj.highlights : ['Cultural experiences', 'Local cuisine', 'Scenic attractions'],
+        description: `Experience the best of ${tripObj.destination} with carefully curated activities and accommodations.`,
+        activities: Array.isArray(tripObj.customizations?.activities) 
+          ? tripObj.customizations.activities 
+          : Array.isArray(tripObj.highlights) 
+            ? tripObj.highlights 
+            : ['Sightseeing', 'Local tours', 'Cultural activities'],
         season: "spring", // Default season
-        kidFriendly: destination.kidFriendlyScore > 7,
+        kidFriendly: true, // Default to family-friendly
         customizations: {
           hotelType: (tripObj.customizations?.hotelType as "budget" | "standard" | "luxury") || "standard",
           activities: Array.isArray(tripObj.customizations?.activities) 
             ? tripObj.customizations.activities 
-            : destination.activities.slice(0, 3).map(a => a.name),
+            : Array.isArray(tripObj.highlights) 
+              ? tripObj.highlights.slice(0, 3)
+              : ['Sightseeing', 'Local culture', 'Dining'],
           departureDate: tripObj.customizations?.departureDate || undefined
         },
         score: Number(tripObj.score) || 85
@@ -185,7 +208,7 @@ const parseAIResponse = (responseText: string): AITripResponse => {
  * Create user-aware fallback response when AI fails
  * This respects the user's actual request instead of showing random destinations
  */
-const createUserAwareFallbackResponse = (userInput: string, conversationHistory: { type: string; content: string }[] = []): AITripResponse => {
+const createUserAwareFallbackResponse = (userInput: string, _conversationHistory: { type: string; content: string }[] = []): AITripResponse => {
   console.log('🎯 Creating user-aware fallback for:', userInput)
   
   // Extract user preferences from input
@@ -211,7 +234,7 @@ const createUserAwareFallbackResponse = (userInput: string, conversationHistory:
       destName.includes(mentioned) || 
       destCountry.includes(mentioned) || 
       destRegion.includes(mentioned) ||
-      mentioned.includes(destName.split(',')[0]) // Match city part
+      mentioned.includes(destName.split(',')[0] || destName) // Match city part
     )
   })
   
@@ -237,7 +260,7 @@ const createUserAwareFallbackResponse = (userInput: string, conversationHistory:
   
   // Take first 2-3 relevant destinations
   const selectedDestinations = relevantDestinations.slice(0, 3)
-  console.log('🎯 Selected destinations:', selectedDestinations.map(d => d.name))
+  console.log('🎯 Selected destinations:', selectedDestinations.map(d => d?.name || 'Unknown'))
   
   // If still no matches, fall back to budget-appropriate destinations
   if (selectedDestinations.length === 0) {

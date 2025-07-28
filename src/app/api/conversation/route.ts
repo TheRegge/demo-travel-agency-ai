@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
 
     // Parse request body
     const body = await request.json()
-    const { input, conversationHistory = [], context } = body
+    const { input, conversationHistory = [] } = body
 
     // Validate input
     if (!input || typeof input !== 'string') {
@@ -139,8 +139,8 @@ export async function POST(request: NextRequest) {
           {
             includeWeather: true,
             includeAttractions: true,
-            includeFlights: false, // Keep false for demo to avoid API costs
-            includeHotels: false,   // Keep false for demo to avoid API costs
+            includeFlights: true,  // Enable real flight data
+            includeHotels: true,   // Enable real hotel data  
             maxAttractions: 5
           }
         )

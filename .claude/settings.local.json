@@ -8,7 +8,8 @@
       "mcp__Ref__ref_read_url",
       "Bash(npx shadcn@latest add dialog)",
       "Bash(npx shadcn-ui:*)",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "mcp__Ref__ref_search_documentation"
     ],
     "deny": []
   }
