@@ -69,11 +69,6 @@ export const useConversation = (): UseConversationReturn => {
       const response = await conversationService.getResponse(message, formattedHistory)
 
       if (response.success) {
-        console.log('🔄 useConversation: Response received:', {
-          clarificationNeeded: response.clarificationNeeded,
-          clarificationQuestions: response.clarificationQuestions,
-          hasContext: !!response.conversationContext
-        })
         
         // Add AI message to conversation
         const aiMessage: ConversationMessage = {
@@ -97,11 +92,6 @@ export const useConversation = (): UseConversationReturn => {
             waitingForClarification: response.clarificationNeeded || false
           }
           
-          console.log('🔄 useConversation: New state:', {
-            waitingForClarification: newState.waitingForClarification,
-            hasClarificationQuestions: !!newState.clarificationQuestions,
-            questionCount: newState.clarificationQuestions?.length
-          })
           
           return newState
         })
@@ -176,7 +166,6 @@ export const useConversation = (): UseConversationReturn => {
    * Store answer to clarification question
    */
   const answerClarification = useCallback((questionId: string, answer: string) => {
-    console.log(`📋 Clarification answer: ${questionId} = ${answer}`)
     
     // Update the conversation context with the answer
     setState(prev => {
@@ -187,7 +176,6 @@ export const useConversation = (): UseConversationReturn => {
         extractedInfo: { ...prev.conversationContext.extractedInfo }
       }
       
-      console.log(`📋 Before update - duration: ${updatedContext.extractedInfo.duration}, budget: ${updatedContext.extractedInfo.budget}`)
       
       // Update context based on question type - handle the actual question IDs
       if (questionId.includes('duration')) {
@@ -195,14 +183,12 @@ export const useConversation = (): UseConversationReturn => {
         const days = parseInt(answer)
         if (!isNaN(days)) {
           updatedContext.extractedInfo.duration = days
-          console.log(`📋 Set duration to ${days} days`)
         }
       } else if (questionId.includes('budget')) {
         // Answer is just the number (e.g., "10000" for $10,000)
         const budget = parseInt(answer)
         if (!isNaN(budget)) {
           updatedContext.extractedInfo.budget = budget
-          console.log(`📋 Set budget to $${budget}`)
         }
       } else if (questionId.includes('group_size')) {
         if (answer.includes('solo') || answer === '1') {
@@ -216,7 +202,6 @@ export const useConversation = (): UseConversationReturn => {
         updatedContext.extractedInfo.preferences = [answer]
       }
       
-      console.log(`📋 After update - duration: ${updatedContext.extractedInfo.duration}, budget: ${updatedContext.extractedInfo.budget}`)
       
       return {
         ...prev,
@@ -229,7 +214,6 @@ export const useConversation = (): UseConversationReturn => {
    * Submit all clarification answers and get final recommendations
    */
   const submitClarificationAnswers = useCallback(async () => {
-    console.log('🎯 submitClarificationAnswers: Starting submission')
     if (!state.conversationContext) {
       console.error('🎯 submitClarificationAnswers: No context available!')
       return
@@ -247,7 +231,6 @@ export const useConversation = (): UseConversationReturn => {
     try {
       // Create a summary message based on the clarification answers
       const contextSummary = summarizeContext(state.conversationContext)
-      console.log('📝 Submitting clarification with context:', state.conversationContext)
       const clarificationMessage = `Based on your preferences: ${contextSummary}`
       
       // Don't add the summary as a user message - it's internal
@@ -264,12 +247,6 @@ export const useConversation = (): UseConversationReturn => {
       const updatedContext = { ...state.conversationContext }
       
       // Remove items from missingInfo that we now have answers for
-      console.log('📝 Before cleaning missingInfo:', updatedContext.missingInfo)
-      console.log('📝 ExtractedInfo:', {
-        duration: updatedContext.extractedInfo.duration,
-        budget: updatedContext.extractedInfo.budget,
-        travelers: updatedContext.extractedInfo.travelers
-      })
       
       if (updatedContext.extractedInfo.duration) {
         updatedContext.missingInfo = updatedContext.missingInfo.filter(item => item !== 'duration')
@@ -281,8 +258,6 @@ export const useConversation = (): UseConversationReturn => {
         updatedContext.missingInfo = updatedContext.missingInfo.filter(item => item !== 'group_size')
       }
       
-      console.log('📝 After cleaning missingInfo:', updatedContext.missingInfo)
-      console.log('📝 Sending updated context to API:', updatedContext)
       
       const response = await conversationService.getResponse(
         clarificationMessage, 
@@ -290,7 +265,6 @@ export const useConversation = (): UseConversationReturn => {
         updatedContext
       )
 
-      console.log('🎯 submitClarificationAnswers: Response received:', response)
       
       if (response.success) {
         // Add AI message to conversation

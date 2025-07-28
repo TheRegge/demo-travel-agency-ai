@@ -110,15 +110,6 @@ class ConversationServiceImpl implements ConversationService {
       // The API route will use AI analysis to determine if clarification is needed
 
       // Call server-side API
-      console.log('🚀 conversationService: Sending to API:', {
-        input: input.substring(0, 50),
-        hasContext: !!currentContext,
-        contextInfo: currentContext ? {
-          destinations: currentContext.userIntent?.destinations,
-          duration: currentContext.extractedInfo?.duration,
-          budget: currentContext.extractedInfo?.budget
-        } : 'no context'
-      })
       
       const response = await fetch('/api/conversation', {
         method: 'POST',
@@ -139,12 +130,6 @@ class ConversationServiceImpl implements ConversationService {
 
       const data = await response.json()
       
-      console.log('🌐 conversationService: API response:', {
-        success: data.success,
-        clarificationNeeded: data.clarificationNeeded,
-        clarificationQuestions: data.clarificationQuestions?.length,
-        hasContext: !!data.conversationContext
-      })
       
       return {
         success: data.success,

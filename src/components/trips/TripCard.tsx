@@ -3,11 +3,12 @@
  * Displays individual trip recommendations with save/select functionality
  */
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { TripCardProps } from '@/types/conversation'
 import { EnhancedTripRecommendation } from '@/types/travel'
+import { getDestinationPhoto, getDestinationGradient } from '@/services/photoService'
 
 export const TripCard = ({
   trip,
@@ -16,9 +17,38 @@ export const TripCard = ({
   isSaved = false
 }: TripCardProps) => {
   const [isHovered, setIsHovered] = useState(false)
+  const [photoData, setPhotoData] = useState<{
+    imageUrl: string;
+    altText: string;
+    attribution?:   {
+      photographer: string;
+      username: string;
+    };
+  } | null>(null)
+  const [photoLoading, setPhotoLoading] = useState(true)
+  const [photoError, setPhotoError] = useState(false)
+
+  // Fetch destination photo on component mount
+  useEffect(() => {
+    const fetchPhoto = async () => {
+      setPhotoLoading(true)
+      setPhotoError(false)
+      
+      try {
+        const photo = await getDestinationPhoto(trip.destination)
+        setPhotoData(photo)
+      } catch (error) {
+        console.error('Error fetching destination photo:', error)
+        setPhotoError(true)
+      } finally {
+        setPhotoLoading(false)
+      }
+    }
+
+    fetchPhoto()
+  }, [trip.destination])
 
   const handleSelect = () => {
-    console.log('🎯 TripCard: Card clicked for:', trip.destination)
     onSelect?.(trip)
   }
 
@@ -38,20 +68,17 @@ export const TripCard = ({
 
   return (
     <Card 
-      className="cursor-pointer hover:shadow-xl focus:shadow-xl focus:ring-4 focus:ring-sky-500/20 focus:outline-none transition-all duration-300 transform hover:scale-[1.02] focus:scale-[1.02] bg-white border-gray-200 rounded-2xl overflow-hidden"
+      className="cursor-pointer hover:shadow-xl focus:shadow-xl focus:ring-4 focus:ring-sky-500/20 focus:outline-none transition-all duration-300 transform hover:scale-[1.02] focus:scale-[1.02] bg-white border-gray-200 rounded-2xl overflow-hidden p-0"
       onClick={(e) => {
-        console.log('🎯 TripCard: Raw card click event fired for:', trip.destination)
         handleSelect()
       }}
       onMouseEnter={() => {
-        console.log('🎯 TripCard: Mouse entered:', trip.destination)
         setIsHovered(true)
       }}
       onMouseLeave={() => setIsHovered(false)}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault()
-          console.log('🎯 TripCard: Keyboard activated for:', trip.destination)
           handleSelect()
         }
       }}
@@ -59,6 +86,52 @@ export const TripCard = ({
       role="button"
       aria-label={`View details for ${trip.destination} trip`}
     >
+      {/* Destination Photo Header */}
+      <div className="relative h-48 w-full overflow-hidden">
+        {photoLoading ? (
+          // Loading skeleton
+          <div className={`h-full w-full animate-pulse ${getDestinationGradient(trip.destination)}`}>
+            <div className="flex items-center justify-center h-full">
+              <div className="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
+            </div>
+          </div>
+        ) : photoData?.imageUrl && !photoError ? (
+          // Photo loaded successfully
+          <>
+            <img
+              src={photoData.imageUrl}
+              alt={photoData.altText}
+              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+              onError={() => setPhotoError(true)}
+            />
+            {/* Photo attribution */}
+            {photoData.attribution && (
+              <div className="absolute bottom-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded backdrop-blur-sm">
+                Photo by{' '}
+                <a 
+                  href={`https://unsplash.com/@${photoData.attribution.username}?utm_source=travel-agency&utm_medium=referral`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline hover:no-underline"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {photoData.attribution.photographer}
+                </a>
+              </div>
+            )}
+          </>
+        ) : (
+          // Fallback gradient
+          <div className={`h-full w-full ${getDestinationGradient(trip.destination)}`}>
+            <div className="flex items-center justify-center h-full">
+              <div className="text-white text-lg font-medium opacity-80">
+                {trip.destination}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
       <CardHeader className="p-6">
         {/* Header with destination and save button */}
         <div className="flex items-start justify-between mb-3">

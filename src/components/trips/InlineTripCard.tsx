@@ -3,9 +3,11 @@
  * Compact trip card specifically for inline display within chat messages
  */
 
+import { useState, useEffect } from 'react'
 import { Card, CardHeader, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { TripRecommendation } from "@/types/travel"
+import { getDestinationPhoto, getDestinationGradient } from '@/services/photoService'
 
 interface InlineTripCardProps {
   trip: TripRecommendation
@@ -22,6 +24,37 @@ export const InlineTripCard = ({
   isSaved, 
   className = "" 
 }: InlineTripCardProps) => {
+  const [photoData, setPhotoData] = useState<{
+    imageUrl: string;
+    altText: string;
+    attribution?: {
+      photographer: string;
+      username: string;
+    };
+  } | null>(null)
+  const [photoLoading, setPhotoLoading] = useState(true)
+  const [photoError, setPhotoError] = useState(false)
+
+  // Fetch destination photo on component mount
+  useEffect(() => {
+    const fetchPhoto = async () => {
+      setPhotoLoading(true)
+      setPhotoError(false)
+      
+      try {
+        const photo = await getDestinationPhoto(trip.destination)
+        setPhotoData(photo)
+      } catch (error) {
+        console.error('Error fetching destination photo:', error)
+        setPhotoError(true)
+      } finally {
+        setPhotoLoading(false)
+      }
+    }
+
+    fetchPhoto()
+  }, [trip.destination])
+
   const handleSelect = () => {
     onSelect(trip)
   }
@@ -34,7 +67,7 @@ export const InlineTripCard = ({
   return (
     <Card 
       key={trip.tripId} 
-      className={`bg-white/95 backdrop-blur border-white/20 shadow-xl hover:shadow-2xl focus:shadow-2xl focus:ring-4 focus:ring-sky-500/20 focus:outline-none transition-all cursor-pointer overflow-hidden ${className}`} 
+      className={`bg-white/95 backdrop-blur border-white/20 shadow-xl hover:shadow-2xl focus:shadow-2xl focus:ring-4 focus:ring-sky-500/20 focus:outline-none transition-all cursor-pointer overflow-hidden rounded-lg p-0 ${className}`} 
       onClick={handleSelect}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
@@ -46,9 +79,39 @@ export const InlineTripCard = ({
       role="button"
       aria-label={`View details for ${trip.destination} trip`}
     >
-      {/* Cover Image Placeholder */}
-      <div className="h-24 sm:h-28 md:h-32 bg-gradient-to-br from-sky-400 via-emerald-400 to-amber-400 relative">
-        <div className="absolute inset-0 bg-black/20"></div>
+      {/* Cover Image */}
+      <div className="h-24 sm:h-28 md:h-32 relative overflow-hidden">
+        {photoLoading ? (
+          // Loading skeleton
+          <div className={`h-full w-full animate-pulse ${getDestinationGradient(trip.destination)}`}>
+            <div className="absolute inset-0 bg-black/20"></div>
+            <div className="flex items-center justify-center h-full">
+              <div className="w-6 h-6 border-3 border-white border-t-transparent rounded-full animate-spin"></div>
+            </div>
+          </div>
+        ) : photoData?.imageUrl && !photoError ? (
+          // Photo loaded successfully
+          <>
+            <img
+              src={photoData.imageUrl}
+              alt={photoData.altText}
+              className="w-full h-full object-cover"
+              onError={() => setPhotoError(true)}
+            />
+            <div className="absolute inset-0 bg-black/20"></div>
+            {/* Photo attribution */}
+            {photoData.attribution && (
+              <div className="absolute bottom-1 right-1 bg-black/50 text-white text-[10px] px-1.5 py-0.5 rounded backdrop-blur-sm">
+                Photo: {photoData.attribution.photographer}
+              </div>
+            )}
+          </>
+        ) : (
+          // Fallback gradient
+          <div className={`h-full w-full ${getDestinationGradient(trip.destination)}`}>
+            <div className="absolute inset-0 bg-black/20"></div>
+          </div>
+        )}
         <div className="absolute top-2 right-2 sm:top-3 sm:right-3">
           <Button
             variant="ghost"

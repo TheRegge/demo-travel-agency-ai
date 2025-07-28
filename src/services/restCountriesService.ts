@@ -31,6 +31,43 @@ export interface Country {
 
 class RestCountriesService {
   private readonly baseUrl = 'https://restcountries.com/v3.1';
+  
+  // Country name mappings for common variations
+  private readonly countryNameMappings: Record<string, string> = {
+    'england': 'united kingdom',
+    'uk': 'united kingdom',
+    'great britain': 'united kingdom',
+    'britain': 'united kingdom',
+    'scotland': 'united kingdom',
+    'wales': 'united kingdom',
+    'northern ireland': 'united kingdom',
+    'holland': 'netherlands',
+    'the netherlands': 'netherlands',
+    'usa': 'united states',
+    'us': 'united states',
+    'america': 'united states',
+    'burma': 'myanmar',
+    'siam': 'thailand',
+    'ceylon': 'sri lanka',
+    'persia': 'iran',
+    'czechoslovakia': 'czech republic',
+    'yugoslavia': 'serbia',
+    'ussr': 'russia',
+    'soviet union': 'russia',
+    'east germany': 'germany',
+    'west germany': 'germany',
+    'south korea': 'korea',
+    'north korea': 'korea',
+    'congo': 'democratic republic of the congo',
+    'ivory coast': 'côte d\'ivoire',
+    'macedonia': 'north macedonia',
+    'swaziland': 'eswatini'
+  };
+
+  private normalizeCountryName(name: string): string {
+    const normalized = name.toLowerCase().trim();
+    return this.countryNameMappings[normalized] || normalized;
+  }
 
   async getAllCountries(): Promise<Country[]> {
     try {
@@ -49,9 +86,21 @@ class RestCountriesService {
 
   async getCountryByName(name: string): Promise<Country[]> {
     try {
-      const response = await fetch(`${this.baseUrl}/name/${encodeURIComponent(name)}?fields=name,capital,region,subregion,population,area,flag,flags,currencies,languages,timezones,continents,latlng`);
+      // Normalize the country name to handle common variations
+      const normalizedName = this.normalizeCountryName(name);
+      
+      const response = await fetch(`${this.baseUrl}/name/${encodeURIComponent(normalizedName)}?fields=name,capital,region,subregion,population,area,flag,flags,currencies,languages,timezones,continents,latlng`);
       
       if (!response.ok) {
+        // If normalized name fails, try with original name as fallback
+        if (normalizedName !== name.toLowerCase()) {
+          console.warn(`Country "${normalizedName}" not found, trying original name "${name}"`);
+          const fallbackResponse = await fetch(`${this.baseUrl}/name/${encodeURIComponent(name)}?fields=name,capital,region,subregion,population,area,flag,flags,currencies,languages,timezones,continents,latlng`);
+          
+          if (fallbackResponse.ok) {
+            return await fallbackResponse.json();
+          }
+        }
         throw new Error(`REST Countries API error: ${response.status}`);
       }
 
@@ -102,7 +151,7 @@ class RestCountriesService {
     ];
   }
 
-  formatCountryForDestination(country: Country): {
+  formatCountryForDestination(country: Country | null | undefined): {
     name: string;
     capital: string;
     region: string;
@@ -111,19 +160,24 @@ class RestCountriesService {
     timezone: string;
     coordinates: [number, number];
     flag: string;
-  } {
+  } | null {
+    if (!country) {
+      console.warn('formatCountryForDestination: country is null or undefined');
+      return null;
+    }
+    
     const currencies = country.currencies ? Object.values(country.currencies) : [];
     const languages = country.languages ? Object.values(country.languages) : [];
     
     return {
-      name: country.name.common,
+      name: country.name?.common || 'Unknown',
       capital: country.capital?.[0] || 'N/A',
-      region: country.region,
+      region: country.region || 'Unknown',
       currency: currencies[0]?.name || 'N/A',
       languages,
-      timezone: country.timezones[0] || 'N/A',
-      coordinates: country.latlng,
-      flag: country.flags.svg
+      timezone: country.timezones?.[0] || 'N/A',
+      coordinates: country.latlng || [0, 0],
+      flag: country.flags?.svg || ''
     };
   }
 }
