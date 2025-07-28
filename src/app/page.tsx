@@ -13,12 +13,17 @@ import { useConversation } from "@/hooks"
 import { useAutoScroll } from "@/hooks/useAutoScroll"
 import { useRef, useEffect } from "react"
 import { SPACING, Z_INDEX } from "@/lib/constants/layout"
+import { ClarificationPrompt } from "@/components/chat/ClarificationPrompt"
+import { AIExtractionDebugger } from "@/components/debug/AIExtractionDebugger"
 
 export default function HomePage() {
   const { state: travelState, actions: travelActions } = useTravelContext()
-  const { state: conversationState, submitMessage, updateInput } = useConversation()
+  const { state: conversationState, submitMessage, updateInput, answerClarification, submitClarificationAnswers } = useConversation()
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const conversationInputRef = useRef<ConversationInputRef>(null)
+  
+  // Get the last user input for debugging
+  const lastUserMessage = travelState.chatHistory.filter(msg => msg.role === 'user').slice(-1)[0]?.content || conversationState.userInput
 
   const handleSubmit = (message: string) => {
     submitMessage(message)
@@ -45,6 +50,17 @@ export default function HomePage() {
     scrollAreaRef, 
     chatHistory: travelState.chatHistory 
   })
+  
+  // Debug clarification state
+  useEffect(() => {
+    if (conversationState.waitingForClarification) {
+      console.log('🎨 Clarification state:', {
+        waiting: conversationState.waitingForClarification,
+        questions: conversationState.clarificationQuestions?.length,
+        context: conversationState.conversationContext
+      })
+    }
+  }, [conversationState.waitingForClarification, conversationState.clarificationQuestions])
 
   // Auto-focus input after AI responses
   useEffect(() => {
@@ -134,6 +150,19 @@ export default function HomePage() {
                     <LoadingSpinner size="lg" />
                   </div>
                 )}
+
+                {/* Clarification Questions */}
+                {conversationState.waitingForClarification && conversationState.clarificationQuestions && (
+                  <div className="mt-6">
+                    <ClarificationPrompt
+                      questions={conversationState.clarificationQuestions}
+                      onAnswer={answerClarification}
+                      onSubmit={submitClarificationAnswers}
+                      disabled={conversationState.isLoading}
+                    />
+                  </div>
+                )}
+                {/* Debug log for clarification state */}
               </div>
             </div>
           </ScrollArea>
@@ -157,6 +186,12 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* AI Extraction Debugger - shows what the AI extracted from user input */}
+      <AIExtractionDebugger 
+        context={conversationState.conversationContext || null}
+        userInput={lastUserMessage}
+        isVisible={true}
+      />
 
     </main>
   )

@@ -3,7 +3,7 @@
  * These interfaces are designed to work with both placeholder and real AI systems
  */
 
-import { TripRecommendation } from './travel'
+import { TripRecommendation, ClarificationQuestion, ConversationContext } from './travel'
 
 // Core conversation types
 export interface ConversationMessage {
@@ -19,6 +19,10 @@ export interface ConversationState {
   userInput: string
   messages: ConversationMessage[]
   error: string | null
+  // New: Clarification support
+  clarificationQuestions?: ClarificationQuestion[]
+  conversationContext?: ConversationContext
+  waitingForClarification: boolean
 }
 
 // AI Response interfaces (matches future real AI structure)
@@ -30,13 +34,17 @@ export interface AIResponse {
     followUpQuestions?: string[]
   }
   error?: string
+  // New: Clarification support
+  clarificationNeeded?: boolean
+  clarificationQuestions?: ClarificationQuestion[]
+  conversationContext?: ConversationContext
 }
 
 // TripRecommendation is imported from './travel' at the top
 
 // Service interfaces
 export interface ConversationService {
-  getResponse(input: string, conversationHistory?: { type: string; content: string }[]): Promise<AIResponse>
+  getResponse(input: string, conversationHistory?: { type: string; content: string }[], context?: ConversationContext): Promise<AIResponse>
   validateInput(input: string): ValidationResult
 }
 
@@ -51,6 +59,9 @@ export interface UseConversationReturn {
   submitMessage: (message: string) => Promise<void>
   clearConversation: () => void
   updateInput: (input: string) => void
+  // New: Clarification support
+  answerClarification: (questionId: string, answer: string) => void
+  submitClarificationAnswers: () => Promise<void>
 }
 
 export interface UseCharacterLimitReturn {
@@ -135,7 +146,7 @@ export interface TripBudgetBreakdown {
 }
 
 export interface ExtendedTripRecommendation extends TripRecommendation {
-  itinerary?: TripItinerary[]
+  legacyItinerary?: TripItinerary[] // Renamed to avoid conflict with MultiDestinationItinerary
   budgetBreakdown?: TripBudgetBreakdown[]
   images?: string[]
   weatherInfo?: string

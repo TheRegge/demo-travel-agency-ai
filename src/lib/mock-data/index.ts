@@ -87,7 +87,8 @@ export function convertToTripRecommendation(
       hotelType: totalCost > 4000 ? 'luxury' : totalCost > 2000 ? 'standard' : 'budget',
       activities: destination.activities.slice(0, 2).map(activity => activity.name)
     },
-    score: Math.round(destination.kidFriendlyScore * 10) // Convert to 0-100 scale
+    score: Math.round(destination.kidFriendlyScore * 10), // Convert to 0-100 scale
+    type: "single" // Add the required type field
   }
 }
 

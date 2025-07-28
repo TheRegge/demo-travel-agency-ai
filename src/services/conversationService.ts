@@ -8,6 +8,14 @@ import {
   ConversationService, 
   ValidationResult
 } from '@/types/conversation'
+import { ConversationContext, ClarificationQuestion } from '@/types/travel'
+import { 
+  generateClarificationQuestions, 
+  generateContextAwareClarificationQuestions,
+  updateContextWithClarification,
+  detectContextModifications
+} from './clarificationService'
+import { contextStorage } from './contextStorageService'
 
 // Security validation patterns
 const FORBIDDEN_PATTERNS = [
@@ -62,7 +70,7 @@ class ConversationServiceImpl implements ConversationService {
   /**
    * Get AI response for user input via server-side API
    */
-  async getResponse(input: string, conversationHistory: { type: string; content: string }[] = []): Promise<AIResponse> {
+  async getResponse(input: string, conversationHistory: { type: string; content: string }[] = [], context?: ConversationContext): Promise<AIResponse> {
     try {
       // Validate input client-side first
       const validation = this.validateInput(input)
@@ -74,7 +82,44 @@ class ConversationServiceImpl implements ConversationService {
         }
       }
 
+      // Load persistent context and analyze input with accumulated context
+      const persistentContext = contextStorage.loadContext()
+      let currentContext: ConversationContext
+      let contextModifications: import('@/types/travel').ContextModification[] = []
+
+      if (context) {
+        // Use provided context as-is - let the API handle AI analysis
+        currentContext = context
+      } else {
+        // No context provided - let the API handle initial AI analysis
+        // Create a minimal context for now
+        currentContext = {
+          userIntent: {
+            destinations: [],
+            keywords: [],
+            ambiguityLevel: 'unclear' as const,
+            tripTypeHint: 'unknown' as const
+          },
+          extractedInfo: {},
+          missingInfo: [],
+          conversationStage: 'initial'
+        }
+      }
+
+      // SKIP old clarification logic - let the API handle AI analysis and clarification
+      // The API route will use AI analysis to determine if clarification is needed
+
       // Call server-side API
+      console.log('🚀 conversationService: Sending to API:', {
+        input: input.substring(0, 50),
+        hasContext: !!currentContext,
+        contextInfo: currentContext ? {
+          destinations: currentContext.userIntent?.destinations,
+          duration: currentContext.extractedInfo?.duration,
+          budget: currentContext.extractedInfo?.budget
+        } : 'no context'
+      })
+      
       const response = await fetch('/api/conversation', {
         method: 'POST',
         headers: {
@@ -82,7 +127,8 @@ class ConversationServiceImpl implements ConversationService {
         },
         body: JSON.stringify({
           input,
-          conversationHistory
+          conversationHistory,
+          context: currentContext
         })
       })
 
@@ -93,11 +139,21 @@ class ConversationServiceImpl implements ConversationService {
 
       const data = await response.json()
       
+      console.log('🌐 conversationService: API response:', {
+        success: data.success,
+        clarificationNeeded: data.clarificationNeeded,
+        clarificationQuestions: data.clarificationQuestions?.length,
+        hasContext: !!data.conversationContext
+      })
+      
       return {
         success: data.success,
         message: data.message,
         data: data.data,
-        error: data.error
+        error: data.error,
+        clarificationNeeded: data.clarificationNeeded,
+        clarificationQuestions: data.clarificationQuestions,
+        conversationContext: data.conversationContext
       }
 
     } catch (error) {
@@ -116,6 +172,53 @@ class ConversationServiceImpl implements ConversationService {
    */
   validateInput(input: string): ValidationResult {
     return validateInput(input)
+  }
+
+  /**
+   * Check if user input is answering a clarification question
+   */
+  private isAnsweringClarification(input: string): boolean {
+    // Simple heuristics - could be improved
+    const clarificationIndicators = [
+      /^(single|multi|one|multiple)/i,
+      /^(solo|couple|family|group)/i,
+      /^(budget|moderate|luxury|comfortable)/i,
+      /^\d+\s*(day|week|month)/i,
+      /^(food|culture|nature|city|relaxation)/i
+    ]
+    
+    return clarificationIndicators.some(pattern => pattern.test(input.trim()))
+  }
+
+  /**
+   * Parse clarification answer from user input
+   */
+  private parseClarificationAnswer(input: string): { questionId?: string, answer: string } {
+    // For now, return the input as the answer
+    // In a real implementation, this would parse structured responses
+    return { answer: input.toLowerCase().trim() }
+  }
+
+  /**
+   * Generate a friendly clarification message
+   */
+  private generateClarificationMessage(context: ConversationContext, _questions: ClarificationQuestion[]): string {
+    const { userIntent, conversationStage } = context
+    
+    let message = ""
+    
+    if (conversationStage === "initial") {
+      if (userIntent.destinations && userIntent.destinations.length > 0) {
+        message = `${userIntent.destinations.join(', ')} sounds amazing! `
+      } else {
+        message = "That sounds like a wonderful trip! "
+      }
+      message += "To help me create the perfect recommendations, I have a few questions:"
+    } else {
+      message = "Great! I have a couple more questions to help personalize your recommendations:"
+    }
+    
+    return message
   }
 }
 

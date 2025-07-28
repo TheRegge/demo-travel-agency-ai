@@ -1,4 +1,5 @@
-import { TripRecommendation } from "./travel"
+import { TripRecommendation, ConversationContext, ExtractedTravelInfo } from "./travel"
+import { PersistentConversationContext } from "@/services/contextStorageService"
 
 // Chat message types
 export interface ChatMessage {
@@ -61,6 +62,11 @@ export interface AppState {
   
   // Error state
   error: string | null
+  
+  // Context persistence state
+  conversationContext: ConversationContext | null
+  persistentContext: PersistentConversationContext | null
+  contextLoaded: boolean
 }
 
 // Context actions for state management
@@ -88,6 +94,19 @@ export interface TravelContextActions {
   
   // Error handling
   setError: (error: string | null) => void
+  
+  // Context persistence actions
+  loadPersistentContext: () => PersistentConversationContext | null
+  updateConversationContext: (context: ConversationContext) => void
+  updateContextPreferences: (preferences: Partial<ExtractedTravelInfo>) => void
+  clearConversationContext: () => void
+  getContextSummary: () => {
+    hasContext: boolean
+    preferences: string[]
+    lastUpdated?: Date
+    messageCount: number
+  }
+  isContextPersistenceEnabled: () => boolean
 }
 
 // Context type combining state and actions

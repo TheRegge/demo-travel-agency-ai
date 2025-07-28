@@ -16,14 +16,57 @@ export interface TripRecommendation {
     activities?: string[]
   }
   score: number // Relevance score 0-100
+  // New fields for multi-destination support
+  type: "single" | "multi-destination"
+  itinerary?: MultiDestinationItinerary
 }
+
+// Multi-destination trip support
+export interface MultiDestinationItinerary {
+  legs: TripLeg[]
+  totalDistance: string // "2,400 miles" or "3,850 km"
+  totalTransportCost: number
+  transportSummary: string // "Mix of flights and trains"
+}
+
+export interface TripLeg {
+  legId: string
+  destination: string
+  duration: number // Days at this destination
+  description: string
+  highlights: string[]
+  activities: string[]
+  hotels: Hotel[]
+  estimatedCost: number // Cost for this destination only
+  transportToNext?: TransportationOption // How to get to next destination
+}
+
+export interface TransportationOption {
+  method: TransportMethod
+  duration: string // "3h 15min"
+  cost: number
+  description: string // "High-speed train from Paris Gare du Nord"
+  alternatives?: TransportationAlternative[]
+  bookingInfo?: string // "Book 2-3 weeks ahead for best prices"
+}
+
+export interface TransportationAlternative {
+  method: TransportMethod
+  duration: string
+  cost: number
+  description: string
+  pros?: string[] // ["Scenic route", "No baggage restrictions"]
+  cons?: string[] // ["Longer travel time", "Weather dependent"]
+}
+
+export type TransportMethod = "flight" | "train" | "bus" | "car_rental" | "ferry" | "rideshare" | "private_transfer"
 
 export interface AITripResponse {
   // Human-readable chat message
   chatMessage: string
   
   // Structured trip recommendations  
-  recommendations: {
+  recommendations?: {
     trips: TripRecommendation[]
     totalBudget: number
     alternativeOptions?: TripRecommendation[]
@@ -32,6 +75,116 @@ export interface AITripResponse {
   // Follow-up engagement
   followUpQuestions?: string[]
   suggestedFilters?: string[]
+  
+  // New: Clarification questions when AI needs more info
+  clarificationNeeded?: boolean
+  clarificationQuestions?: ClarificationQuestion[]
+  conversationContext?: ConversationContext
+}
+
+// Clarification system for multi-turn conversations
+export interface ClarificationQuestion {
+  id: string
+  type: ClarificationQuestionType
+  question: string
+  options?: ClarificationOption[]
+  required: boolean
+  context?: string // Why this question is being asked
+}
+
+export interface ClarificationOption {
+  value: string
+  label: string
+  description?: string
+}
+
+export type ClarificationQuestionType = 
+  | "trip_type" // Single vs multi-destination
+  | "duration" // How long is the trip
+  | "dates" // When are they traveling
+  | "budget" // Budget range
+  | "preferences" // Food, culture, adventure, etc.
+  | "group_size" // Solo, couple, family, group
+  | "accommodation" // Hotel preferences
+
+// Context for maintaining conversation state
+export interface ConversationContext {
+  userIntent: UserIntent
+  extractedInfo: ExtractedTravelInfo
+  missingInfo: ClarificationQuestionType[]
+  conversationStage: "initial" | "clarifying" | "planning" | "refining" | "completed"
+}
+
+// Enhanced context for persistence and context management
+export interface EnhancedConversationContext extends ConversationContext {
+  sessionId?: string
+  messageCount: number
+  tokenUsage: number
+  conversationSummary?: string
+  originalQuery?: string
+  lastUpdated?: Date
+}
+
+// Context modification types for tracking changes
+export interface ContextModification {
+  type: 'preference_update' | 'refinement' | 'variation_request' | 'new_query'
+  field?: keyof ExtractedTravelInfo
+  previousValue?: any
+  newValue?: any
+  confidence: number // 0-1 how confident we are about this modification
+}
+
+export interface UserIntent {
+  destinations?: string[] // Mentioned places
+  keywords: string[] // Budget, luxury, family, food, etc.
+  ambiguityLevel: "clear" | "somewhat_clear" | "unclear"
+  tripTypeHint?: "single" | "multi-destination" | "unknown"
+}
+
+export interface ExtractedTravelInfo {
+  budget?: number
+  duration?: number
+  dates?: {
+    startDate?: string
+    endDate?: string
+    season?: "spring" | "summer" | "fall" | "autumn" | "winter"
+    flexibility?: "exact" | "flexible" | "very_flexible"
+  }
+  period?: string // General time references like "next month", "in the fall", "this summer"
+  travelers?: {
+    adults: number
+    children: number
+    ages?: number[]
+  }
+  preferences?: string[]
+  accommodationType?: "budget" | "standard" | "luxury"
+  // New fields for enhanced context tracking
+  tripType?: "single" | "multi-destination"
+  regions?: string[] // Preferred regions (europe, asia, etc.)
+  budgetFlexibility?: "strict" | "somewhat_flexible" | "very_flexible"
+  durationFlexibility?: "exact" | "plus_minus_few_days" | "flexible"
+}
+
+// Context-aware response enhancement
+export interface ContextAwareResponse {
+  isContextual: boolean
+  referencedPreferences: string[]
+  modifiedPreferences?: ContextModification[]
+  contextContinuity: number // 0-1 how well this response continues the conversation
+}
+
+// Conversation management types
+export interface ConversationMemory {
+  establishedFacts: Record<string, any>
+  userPreferences: ExtractedTravelInfo
+  conversationHistory: Array<{
+    userInput: string
+    systemResponse: string
+    timestamp: Date
+    contextModifications?: ContextModification[]
+  }>
+  activeTopics: string[]
+  resolvedQuestions: ClarificationQuestionType[]
 }
 
 export interface MockDestination {

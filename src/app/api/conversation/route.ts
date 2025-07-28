@@ -5,6 +5,8 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { queryGeminiAI, validateGeminiSetup } from '@/lib/ai/gemini'
+import { generateClarificationQuestions } from '@/services/clarificationService'
+import { analyzeUserInputWithAI, hasEnoughInfoForRecommendationsAI } from '@/services/aiAnalysisService'
 
 export async function POST(request: NextRequest) {
   try {
@@ -20,7 +22,7 @@ export async function POST(request: NextRequest) {
 
     // Parse request body
     const body = await request.json()
-    const { input, conversationHistory = [] } = body
+    const { input, conversationHistory = [], context } = body
 
     // Validate input
     if (!input || typeof input !== 'string') {
@@ -82,6 +84,47 @@ export async function POST(request: NextRequest) {
         )
       : []
 
+    // ALWAYS use AI to analyze user input - AI analysis is required
+    let currentContext: any
+    try {
+      currentContext = await analyzeUserInputWithAI(input, validHistory)
+      console.log('✅ Using AI-based analysis for input:', input.substring(0, 50))
+    } catch (error) {
+      console.error('🚨 AI analysis failed - this is required for the application:', error)
+      return NextResponse.json(
+        { 
+          success: false,
+          message: "I'm having trouble analyzing your request right now. Please try again in a moment.",
+          error: 'AI_ANALYSIS_FAILED'
+        },
+        { status: 503 }
+      )
+    }
+
+    // Check if we have enough information using AI assessment
+    const hasEnoughInfo = hasEnoughInfoForRecommendationsAI(currentContext)
+    console.log('🎯 API: hasEnoughInfo?', hasEnoughInfo, 'Context:', currentContext)
+    
+    if (!hasEnoughInfo) {
+      const clarificationQuestions = generateClarificationQuestions(currentContext)
+      console.log('🎯 API: Generated clarification questions:', clarificationQuestions)
+      
+      if (clarificationQuestions.length > 0) {
+        return NextResponse.json({
+          success: true,
+          message: currentContext.userIntent.destinations && currentContext.userIntent.destinations.length > 0 
+            ? `${currentContext.userIntent.destinations.join(', ')} sounds amazing! To help me create the perfect recommendations, I have a few questions:`
+            : "That sounds like a wonderful trip! To help me create the perfect recommendations, I have a few questions:",
+          clarificationNeeded: true,
+          clarificationQuestions,
+          conversationContext: currentContext
+        })
+      } else {
+        // Fallback: No clarification questions generated, but not enough info
+        console.log('⚠️ API: No clarification questions generated, falling through to AI')
+      }
+    }
+
     // Get AI response
     const aiResponse = await queryGeminiAI(input, validHistory)
 
@@ -90,9 +133,10 @@ export async function POST(request: NextRequest) {
       success: true,
       message: aiResponse.chatMessage,
       data: {
-        recommendations: aiResponse.recommendations.trips,
+        recommendations: aiResponse.recommendations?.trips || [],
         followUpQuestions: aiResponse.followUpQuestions || []
-      }
+      },
+      conversationContext: currentContext // Include context for debugging
     })
 
   } catch (error) {
