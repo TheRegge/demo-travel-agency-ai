@@ -250,24 +250,8 @@ export const useConversation = (): UseConversationReturn => {
       console.log('📝 Submitting clarification with context:', state.conversationContext)
       const clarificationMessage = `Based on your preferences: ${contextSummary}`
       
-      // Add user's summarized preferences as a message
-      const userSummaryMessage: ConversationMessage = {
-        id: `user-summary-${Date.now()}`,
-        content: clarificationMessage,
-        timestamp: new Date(),
-        type: 'user'
-      }
-      
-      setState(prev => ({
-        ...prev,
-        messages: [...prev.messages, userSummaryMessage]
-      }))
-      
-      // Also add to global chat history
-      travelActions.addMessage({
-        role: 'user',
-        content: clarificationMessage
-      })
+      // Don't add the summary as a user message - it's internal
+      // The API will handle showing the AI's response
       
       // Format conversation history for AI service
       const formattedHistory = state.messages.map(msg => ({
@@ -391,7 +375,15 @@ export const useConversation = (): UseConversationReturn => {
     }
     
     if (context.extractedInfo.dates) {
-      parts.push(`dates: ${context.extractedInfo.dates.startDate} to ${context.extractedInfo.dates.endDate}`)
+      if (context.extractedInfo.dates.startDate && context.extractedInfo.dates.endDate) {
+        parts.push(`dates: ${context.extractedInfo.dates.startDate} to ${context.extractedInfo.dates.endDate}`)
+      } else if (context.extractedInfo.dates.season) {
+        parts.push(`season: ${context.extractedInfo.dates.season}`)
+      }
+    }
+    
+    if (context.extractedInfo.period) {
+      parts.push(`period: ${context.extractedInfo.period}`)
     }
     
     if (context.extractedInfo.travelers) {
