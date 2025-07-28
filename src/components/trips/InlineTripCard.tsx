@@ -56,7 +56,12 @@ export const InlineTripCard = ({
   }, [trip.destination])
 
   const handleSelect = () => {
-    onSelect(trip)
+    // Pass the trip with photo data attached
+    const tripWithPhoto = {
+      ...trip,
+      photoData: photoData
+    }
+    onSelect(tripWithPhoto)
   }
 
   const handleSave = (e: React.MouseEvent) => {

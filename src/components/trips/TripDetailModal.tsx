@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
+import { getDestinationGradient } from '@/services/photoService'
 
 export const TripDetailModal = ({
   trip,
@@ -24,15 +25,7 @@ export const TripDetailModal = ({
   isSaved = false
 }: TripDetailModalProps) => {
 
-  console.log('🎯 TripDetailModal: Rendered with props:', {
-    hasTrip: !!trip,
-    tripDestination: trip?.destination,
-    isOpen,
-    modalShouldRender: isOpen && !!trip
-  })
-
   if (!trip) {
-    console.log('🎯 TripDetailModal: No trip provided, returning null')
     return null
   }
 
@@ -49,19 +42,60 @@ export const TripDetailModal = ({
     }).format(amount)
   }
 
+  // Extract photo data if available
+  const photoData = (trip as any).photoData
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="!max-w-6xl w-[95vw] sm:!max-w-6xl max-h-[90vh] overflow-y-auto bg-white rounded-2xl">
-        <DialogHeader className="pb-4">
-          <DialogTitle className="text-3xl font-bold text-gray-900 mb-2">
-            {trip.destination}
-          </DialogTitle>
-          <DialogDescription className="text-lg text-gray-600">
-            {trip.duration} days • {formatCurrency(trip.estimatedCost)}
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent className="!max-w-6xl w-[95vw] sm:!max-w-6xl max-h-[90vh] overflow-y-auto bg-white rounded-2xl p-0">
+        {/* Hidden Dialog Title for Accessibility */}
+        <DialogTitle className="sr-only">{trip.destination} Trip Details</DialogTitle>
+        
+        {/* Destination Photo Header */}
+        <div className="relative h-64 w-full overflow-hidden rounded-t-2xl">
+          {photoData?.imageUrl ? (
+            <>
+              <img
+                src={photoData.imageUrl}
+                alt={photoData.altText}
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+              {/* Photo attribution */}
+              {photoData.attribution && (
+                <div className="absolute bottom-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded backdrop-blur-sm">
+                  Photo by{' '}
+                  <a 
+                    href={`https://unsplash.com/@${photoData.attribution.username}?utm_source=travel-agency&utm_medium=referral`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline hover:no-underline"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {photoData.attribution.photographer}
+                  </a>
+                </div>
+              )}
+            </>
+          ) : (
+            // Fallback gradient
+            <div className={`h-full w-full ${getDestinationGradient(trip.destination)}`}>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+            </div>
+          )}
+          
+          {/* Title Overlay */}
+          <div className="absolute bottom-0 left-0 right-0 p-6">
+            <h2 className="text-4xl font-bold text-white mb-2 drop-shadow-lg">
+              {trip.destination}
+            </h2>
+            <p className="text-xl text-white/90 drop-shadow">
+              {trip.duration} days • {formatCurrency(trip.estimatedCost)}
+            </p>
+          </div>
+        </div>
 
-        <div className="space-y-6">
+        <div className="p-6 space-y-6">
           {/* Trip Overview */}
           <div>
             <h3 className="text-xl font-semibold text-gray-800 mb-3">Overview</h3>

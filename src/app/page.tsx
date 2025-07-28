@@ -39,11 +39,16 @@ export default function HomePage() {
     updateInput(value)
   }
 
-  const handleTripSelect = (trip: { tripId: string }) => {
+  const handleTripSelect = (trip: any) => {
     // Find the full trip data from the travel state
     const fullTrip = travelState.recommendedTrips.find(t => t.tripId === trip.tripId)
     if (fullTrip) {
-      setSelectedTrip(fullTrip)
+      // Merge the photo data with the full trip data
+      const tripWithPhoto = {
+        ...fullTrip,
+        photoData: trip.photoData
+      }
+      setSelectedTrip(tripWithPhoto)
       setIsModalOpen(true)
     }
     travelActions.selectTrip(trip.tripId)
