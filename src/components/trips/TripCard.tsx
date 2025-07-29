@@ -166,7 +166,7 @@ export const TripCard = ({
 
         {/* Trip details */}
         <CardDescription className="text-lg text-gray-600 mb-4">
-          {trip.duration} days • {formatCurrency(trip.estimatedCost)}
+          {trip.duration} days • from {formatCurrency(trip.estimatedCost)}
         </CardDescription>
 
         {/* Description with real data enhancement */}

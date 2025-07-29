@@ -141,7 +141,7 @@ export const InlineTripCard = ({
 
       <CardHeader className="p-3 sm:p-4 pb-3 sm:pb-4">
         <CardDescription className="text-sm sm:text-base font-semibold text-gray-700">
-          {trip.duration} days • ${trip.estimatedCost.toLocaleString()}
+          {trip.duration} days • from ${trip.estimatedCost.toLocaleString()}
         </CardDescription>
         <div className="mt-2 sm:mt-3 space-y-2 sm:space-y-3">
           <p className="text-xs sm:text-sm text-gray-600 line-clamp-2">{trip.description}</p>
