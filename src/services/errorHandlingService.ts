@@ -178,10 +178,16 @@ class ErrorHandlingService {
       
       // Always ensure we have hotels - prioritize: trip.hotels → mock destination → generated
       let hotels = trip.hotels || mockDest?.hotels
+      let hotelSource: 'api' | 'mock' | 'generated' = 'generated'
       
-      if (!hotels || hotels.length === 0) {
+      if (trip.hotels && trip.hotels.length > 0) {
+        hotelSource = 'mock' // Trip already had hotels (likely from AI)
+      } else if (mockDest?.hotels && mockDest.hotels.length > 0) {
+        hotelSource = 'mock' // Got hotels from mock destination
+      } else {
         // Generate hotels if none found
         hotels = this.generateHotelsForDestination(trip.destination)
+        hotelSource = 'generated'
       }
       
       return {
@@ -194,8 +200,9 @@ class ErrorHandlingService {
           weatherData: false,
           attractionsData: false,
           flightData: false,
-          hotelData: true, // Always mark as having hotel data since we generate if needed
-        }
+          hotelData: false, // Never mark as true since these aren't from real API
+        },
+        hotelDataSource: hotelSource
       }
     })
   }

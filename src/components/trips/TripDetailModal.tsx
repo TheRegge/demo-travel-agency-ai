@@ -446,7 +446,12 @@ export const TripDetailModal = ({
 
                             <div className="mt-2 pt-2 border-t border-gray-100">
                               <div className="text-xs text-emerald-600 bg-emerald-50 px-2 py-1 rounded-md inline-block">
-                                {(trip as EnhancedTripRecommendation).apiSources?.hotelData ? 'Live from Amadeus' : 'Sample Data'}
+                                {(() => {
+                                  const hotelSource = (trip as EnhancedTripRecommendation).hotelDataSource
+                                  if (hotelSource === 'api') return 'Live from Amadeus'
+                                  if (hotelSource === 'mock') return 'Sample Data'
+                                  return 'Generated Options'
+                                })()}
                               </div>
                             </div>
                           </CardContent>

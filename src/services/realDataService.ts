@@ -186,22 +186,22 @@ class RealDataService {
     // Ensure we always have hotel data - prioritize real data, then trip data, then generate
     const ensureHotels = () => {
       if (realData?.hotels && realData.hotels.length > 0) {
-        return realData.hotels
+        return { hotels: realData.hotels, source: 'api' as const }
       }
       if ((trip as any).hotels && (trip as any).hotels.length > 0) {
-        return (trip as any).hotels
+        return { hotels: (trip as any).hotels, source: 'mock' as const }
       }
       // Generate hotels if none found
-      return errorHandlingService.generateHotelsForDestination(normalizedDestination)
+      return { hotels: errorHandlingService.generateHotelsForDestination(normalizedDestination), source: 'generated' as const }
     }
 
-    const hotelData = ensureHotels()
+    const hotelResult = ensureHotels()
 
     const enhanced: EnhancedTripRecommendation = {
       ...trip,
       realData: realData ? {
         ...realData,
-        hotels: hotelData // Always ensure hotels are present
+        hotels: hotelResult.hotels // Always ensure hotels are present
       } : {
         countryInfo: {
           name: normalizedDestination.split(',')[0] || 'Unknown',
@@ -213,7 +213,7 @@ class RealDataService {
           coordinates: [0, 0] as [number, number],
           flag: ''
         },
-        hotels: hotelData
+        hotels: hotelResult.hotels
       },
       dataSource: realData ? 'hybrid' : 'mock',
       lastUpdated: new Date(),
@@ -222,8 +222,10 @@ class RealDataService {
         weatherData: !!realData?.weather,
         attractionsData: !!realData?.attractions && realData.attractions.length > 0,
         flightData: !!realData?.flights && realData.flights.length > 0,
-        hotelData: true, // Always true since we ensure hotels exist
-      }
+        hotelData: hotelResult.source === 'api', // Only true for real API data
+      },
+      // Add hotel data source for accurate labeling
+      hotelDataSource: hotelResult.source
     }
 
     // Enhance description with real data if available
