@@ -4,6 +4,7 @@
  */
 
 import { TripRecommendation, EnhancedTripRecommendation } from '@/types/travel'
+import { mockDestinations } from '@/lib/mock-data/destinations'
 
 export interface APIError {
   service: string
@@ -168,18 +169,35 @@ class ErrorHandlingService {
   }
 
   private createMockEnhancedTrips(trips: TripRecommendation[]): EnhancedTripRecommendation[] {
-    return trips.map(trip => ({
-      ...trip,
-      dataSource: 'mock' as const,
-      lastUpdated: new Date(),
-      apiSources: {
-        countryData: false,
-        weatherData: false,
-        attractionsData: false,
-        flightData: false,
-        hotelData: false,
+    return trips.map(trip => {
+      // Find matching mock destination to get hotel data
+      const mockDest = mockDestinations.find(dest => 
+        dest.name.toLowerCase().includes(trip.destination.toLowerCase().split(',')[0]) ||
+        trip.destination.toLowerCase().includes(dest.name.toLowerCase().split(',')[0])
+      )
+      
+      // Always ensure we have hotels - prioritize: trip.hotels → mock destination → generated
+      let hotels = trip.hotels || mockDest?.hotels
+      
+      if (!hotels || hotels.length === 0) {
+        // Generate hotels if none found
+        hotels = this.generateHotelsForDestination(trip.destination)
       }
-    }))
+      
+      return {
+        ...trip,
+        hotels,
+        dataSource: 'mock' as const,
+        lastUpdated: new Date(),
+        apiSources: {
+          countryData: false,
+          weatherData: false,
+          attractionsData: false,
+          flightData: false,
+          hotelData: true, // Always mark as having hotel data since we generate if needed
+        }
+      }
+    })
   }
 
   private getMockCountryData(countryName: string): any {
@@ -328,45 +346,65 @@ class ErrorHandlingService {
     return flightOptions
   }
 
-  private getMockHotelData(cityName: string): any[] {
-    // Generate mock hotel data based on city
-    const hotelOptions = [
+  generateHotelsForDestination(destination: string): any[] {
+    // Extract city name from destination (e.g., "Paris, France" -> "Paris")
+    const cityName = destination.split(',')[0].trim()
+    
+    // Generate contextual hotel names based on destination
+    const hotelTemplates = [
       {
-        id: `mock-hotel-${cityName}-1`,
-        name: `Grand ${cityName} Hotel`,
-        rating: '4',
-        address: `123 Main Street, ${cityName}`,
-        coordinates: [0, 0],
-        minPrice: 120 + Math.floor(Math.random() * 200),
-        currency: 'USD',
-        offers: [],
-        amenities: ['WiFi', 'Pool', 'Gym', 'Restaurant']
+        nameTemplate: `Grand ${cityName} Hotel`,
+        type: 'luxury',
+        basePrice: 280,
+        priceRange: 200,
+        rating: 4.5 + Math.random() * 0.4,
+        amenities: ['WiFi', 'Spa', 'Fine Dining', 'Concierge', 'Fitness Center']
       },
       {
-        id: `mock-hotel-${cityName}-2`,
-        name: `${cityName} Inn & Suites`,
-        rating: '3',
-        address: `456 Central Avenue, ${cityName}`,
-        coordinates: [0, 0],
-        minPrice: 85 + Math.floor(Math.random() * 150),
-        currency: 'USD',
-        offers: [],
+        nameTemplate: `${cityName} Boutique Inn`,
+        type: 'standard',
+        basePrice: 150,
+        priceRange: 100,
+        rating: 4.0 + Math.random() * 0.5,
+        amenities: ['WiFi', 'Restaurant', 'Bar', 'Room Service']
+      },
+      {
+        nameTemplate: `Historic ${cityName} Lodge`,
+        type: 'standard',
+        basePrice: 120,
+        priceRange: 80,
+        rating: 3.8 + Math.random() * 0.6,
+        amenities: ['WiFi', 'Breakfast', 'Historic Building', 'Garden']
+      },
+      {
+        nameTemplate: `${cityName} Budget Stay`,
+        type: 'budget',
+        basePrice: 75,
+        priceRange: 50,
+        rating: 3.5 + Math.random() * 0.8,
         amenities: ['WiFi', 'Breakfast', 'Parking']
-      },
-      {
-        id: `mock-hotel-${cityName}-3`,
-        name: `Historic ${cityName} Lodge`,
-        rating: '5',
-        address: `789 Heritage Square, ${cityName}`,
-        coordinates: [0, 0],
-        minPrice: 220 + Math.floor(Math.random() * 180),
-        currency: 'USD',
-        offers: [],
-        amenities: ['WiFi', 'Spa', 'Fine Dining', 'Concierge', 'Valet']
       }
     ]
     
-    return hotelOptions
+    return hotelTemplates.map((template, index) => ({
+      id: `generated-hotel-${cityName.toLowerCase().replace(/\s+/g, '-')}-${index + 1}`,
+      name: template.nameTemplate,
+      type: template.type,
+      pricePerNight: template.basePrice + Math.floor(Math.random() * template.priceRange),
+      minPrice: template.basePrice + Math.floor(Math.random() * template.priceRange), // For compatibility
+      rating: Math.round(template.rating * 10) / 10,
+      amenities: template.amenities,
+      kidFriendly: template.type !== 'luxury', // Luxury hotels may be less kid-friendly
+      description: `${template.type === 'luxury' ? 'Luxurious' : template.type === 'budget' ? 'Comfortable and affordable' : 'Charming'} accommodation in the heart of ${cityName}.`,
+      address: `${Math.floor(Math.random() * 999) + 1} ${['Main', 'Central', 'Historic', 'Royal', 'Grand'][Math.floor(Math.random() * 5)]} Street, ${cityName}`,
+      coordinates: [0, 0],
+      currency: 'USD'
+    }))
+  }
+
+  private getMockHotelData(cityName: string): any[] {
+    // Use the same generation logic for API fallback
+    return this.generateHotelsForDestination(cityName)
   }
 
   private logError(serviceName: string, error: Error, fallbackUsed: boolean): void {

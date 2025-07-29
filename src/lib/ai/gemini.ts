@@ -43,7 +43,19 @@ OUTPUT SCHEMA:
           "hotelType": "budget|standard|luxury",
           "activities": ["activity1", "activity2", "activity3"]
         },
-        "score": "relevance score 0-100"
+        "score": "relevance score 0-100",
+        "hotels": [
+          {
+            "id": "hotel-identifier",
+            "name": "Hotel Name",
+            "type": "budget|standard|luxury",
+            "pricePerNight": 150,
+            "rating": 4.5,
+            "amenities": ["WiFi", "Pool", "Spa"],
+            "kidFriendly": true,
+            "description": "Brief hotel description"
+          }
+        ]
       }
     ],
     "totalBudget": "sum of all trip costs"
@@ -245,6 +257,8 @@ const createUserAwareFallbackResponse = (userInput: string, _conversationHistory
     
     if (lowerInput.includes('family') || lowerInput.includes('kids')) {
       relevantDestinations = mockDestinations.filter(dest => dest.kidFriendlyScore > 7)
+    } else if (lowerInput.includes('wife') || lowerInput.includes('romantic') || lowerInput.includes('couple') || lowerInput.includes('honeymoon')) {
+      relevantDestinations = mockDestinations.filter(dest => dest.category === 'romantic' || dest.category === 'luxury')
     } else if (lowerInput.includes('beach') || lowerInput.includes('tropical')) {
       relevantDestinations = mockDestinations.filter(dest => dest.category === 'scenic')
     } else if (lowerInput.includes('culture') || lowerInput.includes('history')) {
@@ -285,7 +299,9 @@ const createUserAwareFallbackResponse = (userInput: string, _conversationHistory
       activities: dest.activities.slice(0, 3).map(a => a.name)
     },
     score: 80,
-    type: "single" as const
+    type: "single" as const,
+    // Include hotel data from mock destinations
+    hotels: dest.hotels
   }))
 
   // Create personalized message
@@ -320,7 +336,7 @@ function extractDestinationsFromInput(input: string): string[] {
   
   // Common destinations that might be in our mock data
   const destinationKeywords = [
-    'paris', 'france', 'london', 'england', 'rome', 'italy', 'spain', 'madrid', 'barcelona',
+    'paris', 'france', 'london', 'england', 'rome', 'italy', 'venice', 'spain', 'madrid', 'barcelona',
     'germany', 'berlin', 'amsterdam', 'netherlands', 'prague', 'czech', 'austria', 'vienna',
     'switzerland', 'japan', 'tokyo', 'thailand', 'bangkok', 'singapore', 'australia', 'sydney',
     'new york', 'florida', 'california', 'orlando', 'miami', 'los angeles', 'san francisco'

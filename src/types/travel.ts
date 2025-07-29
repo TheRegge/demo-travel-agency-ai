@@ -20,6 +20,8 @@ export interface TripRecommendation {
   // New fields for multi-destination support
   type: "single" | "multi-destination"
   itinerary?: MultiDestinationItinerary
+  // Hotel data from mock destinations
+  hotels?: Hotel[]
 }
 
 // Multi-destination trip support
@@ -191,7 +193,7 @@ export interface ConversationMemory {
 export interface MockDestination {
   id: string
   name: string
-  category: "family-friendly" | "budget" | "luxury" | "adventure" | "urban" | "scenic" | "cultural"
+  category: "family-friendly" | "budget" | "luxury" | "adventure" | "urban" | "scenic" | "cultural" | "romantic"
   location: {
     country: string
     region: string
@@ -214,7 +216,7 @@ export interface MockDestination {
 export interface Activity {
   id: string
   name: string
-  type: "attraction" | "dining" | "adventure" | "cultural" | "relaxation"
+  type: "attraction" | "dining" | "adventure" | "cultural" | "relaxation" | "romantic"
   duration: number // Hours
   cost: number
   ageAppropriate: boolean

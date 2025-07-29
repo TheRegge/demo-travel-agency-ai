@@ -1,6 +1,106 @@
 import { MockDestination } from "@/types/travel"
 
 export const mockDestinations: MockDestination[] = [
+  // Venice - Romantic destination
+  {
+    id: "venice-italy",
+    name: "Venice, Italy",
+    category: "romantic",
+    location: {
+      country: "Italy",
+      region: "Veneto",
+      coordinates: { lat: 45.4408, lng: 12.3155 }
+    },
+    seasonalPricing: {
+      peak: 4500,    // Summer/Carnival
+      shoulder: 3500, // Spring/Fall
+      offSeason: 2500 // Winter
+    },
+    kidFriendlyScore: 6.5,
+    description: "The enchanting city of canals, gondolas, and timeless romance. Perfect for couples seeking an unforgettable romantic escape with stunning architecture and intimate dining experiences.",
+    imageUrl: "/images/destinations/venice.jpg",
+    activities: [
+      {
+        id: "gondola-ride",
+        name: "Private Gondola Serenade",
+        type: "romantic",
+        duration: 1,
+        cost: 150,
+        ageAppropriate: true,
+        description: "Glide through Venice's canals with a singing gondolier at sunset.",
+        location: "Grand Canal"
+      },
+      {
+        id: "doges-palace",
+        name: "Doge's Palace & Bridge of Sighs",
+        type: "cultural",
+        duration: 3,
+        cost: 35,
+        ageAppropriate: true,
+        description: "Explore the opulent palace and cross the famous Bridge of Sighs.",
+        location: "Piazza San Marco"
+      },
+      {
+        id: "murano-burano",
+        name: "Murano & Burano Island Tour",
+        type: "adventure",
+        duration: 5,
+        cost: 45,
+        ageAppropriate: true,
+        description: "Visit the colorful islands famous for glassmaking and lacemaking.",
+        location: "Venetian Lagoon"
+      }
+    ],
+    hotels: [
+      {
+        id: "gritti-palace",
+        name: "The Gritti Palace, a Luxury Collection Hotel",
+        type: "luxury",
+        pricePerNight: 850,
+        rating: 4.9,
+        amenities: ["Canal View", "Spa", "Michelin Restaurant", "Concierge", "Private Water Taxi"],
+        kidFriendly: false,
+        description: "15th-century palazzo on the Grand Canal with legendary Venetian glamour."
+      },
+      {
+        id: "hotel-danieli",
+        name: "Hotel Danieli, a Luxury Collection Hotel",
+        type: "luxury",
+        pricePerNight: 700,
+        rating: 4.7,
+        amenities: ["Lagoon View", "Rooftop Restaurant", "Historic Building", "Spa"],
+        kidFriendly: true,
+        description: "Iconic hotel near St. Mark's Square with breathtaking lagoon views."
+      },
+      {
+        id: "ca-sagredo",
+        name: "Ca' Sagredo Hotel",
+        type: "standard",
+        pricePerNight: 350,
+        rating: 4.5,
+        amenities: ["Grand Canal View", "Art Collection", "Restaurant", "Bar"],
+        kidFriendly: true,
+        description: "Historic palace with museum-quality art and canal views."
+      },
+      {
+        id: "hotel-ai-reali",
+        name: "Hotel Ai Reali di Venezia",
+        type: "standard",
+        pricePerNight: 200,
+        rating: 4.3,
+        amenities: ["Breakfast", "Canal View Rooms", "Bar", "WiFi"],
+        kidFriendly: true,
+        description: "Boutique hotel in converted palace near Rialto Bridge."
+      }
+    ],
+    flightData: {
+      averageCost: 650,
+      duration: "varies by origin",
+      airlines: ["Alitalia", "Lufthansa", "Air France", "British Airways"],
+      directFlight: true
+    }
+  },
+
   // Original destinations (keeping existing ones)
   {
     id: "orlando-fl",
