@@ -18,9 +18,10 @@ interface Message {
 
 interface ChatContainerProps {
   initialQuery?: string
+  onUserMessage?: () => void
 }
 
-export function ChatContainer({ initialQuery = "" }: ChatContainerProps) {
+export function ChatContainer({ initialQuery = "", onUserMessage }: ChatContainerProps) {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "welcome",
@@ -43,6 +44,10 @@ export function ChatContainer({ initialQuery = "" }: ChatContainerProps) {
   const loadMockConversation = (type: ConversationType) => {
     setShowExamples(false)
     setMessages(mockConversations[type])
+    // Notify parent component that user has interacted
+    if (onUserMessage) {
+      onUserMessage()
+    }
   }
 
   const resetChat = () => {
@@ -61,6 +66,11 @@ export function ChatContainer({ initialQuery = "" }: ChatContainerProps) {
 
   const handleSendMessage = (content: string) => {
     setShowExamples(false)
+    
+    // Notify parent component that user has sent a message
+    if (onUserMessage) {
+      onUserMessage()
+    }
     
     const userMessage: Message = {
       id: `user-${Date.now()}`,
