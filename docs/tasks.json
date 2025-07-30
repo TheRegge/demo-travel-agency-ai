@@ -334,7 +334,7 @@
       "id": "11",
       "name": "AI Integration Setup",
       "description": "Replace simple placeholder responses with real Google Gemini integration. Remove clearly-marked placeholder logic and integrate real AI while maintaining the same UI behavior and response format.",
-      "status": "pending",
+      "status": "done",
       "dependsOn": ["10"],
       "phase": "phase2",
       "subtasks": [
@@ -342,21 +342,21 @@
           "id": "11.1",
           "name": "Configure Gemini API Integration",
           "description": "Set up @ai-sdk/google integration with proper API key management via environment variables. Implement the enhanced system prompt from PRD lines 275-320 with JSON output format requirements. Create queryGeminiAI function that enforces structured responses.",
-          "status": "pending",
+          "status": "done",
           "dependsOn": []
         },
         {
           "id": "11.2",
           "name": "Replace Placeholder System with Real AI",
           "description": "Remove placeholder logic marked with '// TODO: REMOVE IN PHASE 2' and integrate real Gemini responses. Create robust JSON parsing and validation against AITripResponse interface. Handle errors gracefully with simple fallback messages.",
-          "status": "pending",
+          "status": "done",
           "dependsOn": ["11.1"]
         },
         {
           "id": "11.3",
           "name": "Test AI Response Quality",
           "description": "Test various user scenarios to ensure AI responses meet quality standards: budget sensitivity, family planning, destination variety, and follow-up questions. Fine-tune system prompt based on response quality and ensure consistent JSON output format.",
-          "status": "pending",
+          "status": "done",
           "dependsOn": ["11.2"]
         }
       ]
@@ -365,7 +365,7 @@
       "id": "12",
       "name": "Weather API Integration",
       "description": "Add real weather data integration to provide authenticity for destination recommendations. This is the only real API beyond Gemini needed for the demo.",
-      "status": "pending",
+      "status": "done",
       "dependsOn": ["11"],
       "phase": "phase2",
       "subtasks": [
@@ -373,21 +373,21 @@
           "id": "12.1",
           "name": "Integrate OpenWeather API",
           "description": "Set up OpenWeather API integration for basic weather data: current conditions and 5-day forecast for destination cities. Create weather service with error handling and caching. Store API key in environment variables.",
-          "status": "pending",
+          "status": "done",
           "dependsOn": []
         },
         {
           "id": "12.2",
           "name": "Update Gemini System Prompt with Weather",
           "description": "Modify system prompt to include current weather data in CURRENT_WEATHER_DATA section. Update AI responses to consider weather conditions in destination recommendations and activity suggestions.",
-          "status": "pending",
+          "status": "done",
           "dependsOn": ["12.1"]
         },
         {
           "id": "12.3",
           "name": "Display Weather in Trip Cards",
           "description": "Add weather information to trip recommendation cards: current conditions icon, temperature, and short forecast. Style consistently with tropical theme and ensure mobile responsiveness.",
-          "status": "pending",
+          "status": "done",
           "dependsOn": ["12.2"]
         }
       ]
