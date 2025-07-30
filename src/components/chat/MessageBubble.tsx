@@ -19,7 +19,7 @@ export function MessageBubble({ message }: MessageBubbleProps) {
   
   return (
     <div className={`flex ${isUser ? "justify-end" : "justify-start"} mb-4`}>
-      <div className={`flex items-start gap-3 max-w-[80%] ${isUser ? "flex-row-reverse" : "flex-row"}`}>
+      <div className={`flex items-start gap-1 max-w-[85%] ${isUser ? "flex-row-reverse" : "flex-row"}`}>
         {/* Avatar */}
         <div className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold flex-shrink-0 ${
           isUser 
@@ -29,12 +29,12 @@ export function MessageBubble({ message }: MessageBubbleProps) {
           {isUser ? "You" : "AI"}
         </div>
         
-        {/* Message Content */}
+        {/* Message Content with tail using CSS classes */}
         <div className={`flex flex-col ${isUser ? "items-end" : "items-start"}`}>
           <div className={`rounded-2xl px-4 py-3 shadow-sm ${
             isUser 
-              ? "bg-gradient-to-br from-sky-500 to-sky-600 text-white rounded-br-sm" 
-              : "bg-gray-100 text-gray-900 rounded-bl-sm"
+              ? "bg-gradient-to-br from-sky-500 to-sky-600 text-white chat-bubble-user" 
+              : "bg-gray-100 text-gray-900 chat-bubble-ai"
           }`}>
             <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
           </div>

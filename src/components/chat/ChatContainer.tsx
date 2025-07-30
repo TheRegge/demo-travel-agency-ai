@@ -124,7 +124,7 @@ export function ChatContainer({ initialQuery = "" }: ChatContainerProps) {
 
       {/* Messages Container */}
       <Card className="flex-1 overflow-hidden bg-white border-x border-gray-200 rounded-none">
-        <div className="h-full overflow-y-auto p-4 space-y-4">
+        <div className="h-full overflow-y-auto px-6 py-4 space-y-4">
           {messages.map((message) => (
             <MessageBubble key={message.id} message={message} />
           ))}

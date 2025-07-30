@@ -4,8 +4,9 @@
  */
 
 import { useState, useEffect } from 'react'
+import Image from 'next/image'
 import { TripDetailModalProps } from '@/types/conversation'
-import { EnhancedTripRecommendation } from '@/types/travel'
+import { EnhancedTripRecommendation, Hotel } from '@/types/travel'
 import {
   Dialog,
   DialogContent,
@@ -18,6 +19,52 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { getDestinationGradient } from '@/services/photoService'
 import { tripCostCalculator, TripConfig, TripCostBreakdown } from '@/services/tripCostCalculator'
+
+// Define FlightOffer type based on the structure in travel.ts
+type FlightOffer = {
+  id: string
+  price: number
+  currency: string
+  duration: string
+  stops: number
+  airline: string
+  departure: {
+    airport: string
+    time: string
+    date: string
+  }
+  arrival: {
+    airport: string
+    time: string
+    date: string
+  }
+}
+
+// Define photo data type
+type PhotoData = {
+  imageUrl: string
+  altText: string
+  attribution?: {
+    username: string
+    photographer: string
+  }
+}
+
+// Define API Hotel type (from realData.hotels)
+type APIHotel = {
+  id: string
+  name: string
+  rating?: string
+  address: string
+  coordinates: [number, number]
+  minPrice: number
+  currency: string
+  amenities?: string[]
+  description?: string
+}
+
+// Union type for hotels from different sources
+type HotelOption = Hotel | APIHotel
 
 export const TripDetailModal = ({
   trip,
@@ -34,8 +81,8 @@ export const TripDetailModal = ({
   const [infants, setInfants] = useState(0)
   const [checkInDate, setCheckInDate] = useState<string>('')
   const [checkOutDate, setCheckOutDate] = useState<string>('')
-  const [selectedHotel, setSelectedHotel] = useState<any>(null)
-  const [selectedFlights, setSelectedFlights] = useState<any>({ outbound: null, return: null })
+  const [selectedHotel, setSelectedHotel] = useState<HotelOption | null>(null)
+  const [selectedFlights, setSelectedFlights] = useState<{ outbound: FlightOffer | null, return: FlightOffer | null }>({ outbound: null, return: null })
   const [costBreakdown, setCostBreakdown] = useState<TripCostBreakdown | null>(null)
   const [isCustomizeExpanded, setIsCustomizeExpanded] = useState(false)
   const [isCostExpanded, setIsCostExpanded] = useState(false)
@@ -49,8 +96,8 @@ export const TripDetailModal = ({
 
       const checkIn = inDate.toISOString().split('T')[0]
       const checkOut = outDate.toISOString().split('T')[0]
-      setCheckInDate(checkIn)
-      setCheckOutDate(checkOut)
+      setCheckInDate(checkIn || '')
+      setCheckOutDate(checkOut || '')
     }
   }, [trip, checkInDate])
 
@@ -59,15 +106,15 @@ export const TripDetailModal = ({
     if (!trip) return
 
     const enhancedTrip = trip as EnhancedTripRecommendation
-    const hotels = enhancedTrip.realData?.hotels || (trip as any).hotels || []
+    const hotels: (APIHotel | Hotel)[] = enhancedTrip.realData?.hotels || (trip as EnhancedTripRecommendation).hotels || []
     const flights = enhancedTrip.realData?.flights || []
 
     if (hotels.length > 0 && !selectedHotel) {
-      setSelectedHotel(hotels[0])
+      setSelectedHotel(hotels[0] || null)
     }
     if (flights.length > 0 && !selectedFlights.outbound) {
       setSelectedFlights({
-        outbound: flights[0],
+        outbound: flights[0] || null,
         return: flights[1] || null
       })
     }
@@ -81,8 +128,30 @@ export const TripDetailModal = ({
       travelers: { adults, children, infants },
       checkInDate: new Date(checkInDate),
       checkOutDate: new Date(checkOutDate),
-      selectedHotel,
-      selectedFlights
+      ...(selectedHotel && {
+        selectedHotel: {
+          id: selectedHotel.id,
+          name: selectedHotel.name,
+          minPrice: 'minPrice' in selectedHotel ? selectedHotel.minPrice : selectedHotel.pricePerNight,
+          currency: 'currency' in selectedHotel ? selectedHotel.currency : 'USD'
+        }
+      }),
+      selectedFlights: {
+        ...(selectedFlights.outbound && {
+          outbound: {
+            id: selectedFlights.outbound.id,
+            price: selectedFlights.outbound.price,
+            airline: selectedFlights.outbound.airline
+          }
+        }),
+        ...(selectedFlights.return && {
+          return: {
+            id: selectedFlights.return.id,
+            price: selectedFlights.return.price,
+            airline: selectedFlights.return.airline
+          }
+        })
+      }
     }
 
     const activities = trip.activityDetails || []
@@ -108,7 +177,7 @@ export const TripDetailModal = ({
   }
 
   // Extract photo data if available
-  const photoData = (trip as any).photoData
+  const photoData = (trip as EnhancedTripRecommendation & { photoData?: PhotoData }).photoData
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -120,10 +189,12 @@ export const TripDetailModal = ({
         <div className="relative h-64 w-full overflow-hidden rounded-t-2xl">
           {photoData?.imageUrl ? (
             <>
-              <img
+              <Image
                 src={photoData.imageUrl}
                 alt={photoData.altText}
-                className="w-full h-full object-cover"
+                fill
+                className="object-cover"
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 95vw, 90vw"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
               {/* Photo attribution */}
@@ -383,11 +454,11 @@ export const TripDetailModal = ({
 
                 {/* Hotel Selection */}
                 {((trip as EnhancedTripRecommendation).realData?.hotels && (trip as EnhancedTripRecommendation).realData!.hotels!.length > 0) ||
-                  ((trip as any).hotels && (trip as any).hotels.length > 0) ? (
+                  ((trip as EnhancedTripRecommendation).hotels && (trip as EnhancedTripRecommendation).hotels!.length > 0) ? (
                   <div className="mt-4">
                     <Label className="text-sm font-medium text-gray-700 mb-2 block">Select Hotel</Label>
                     <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-                      {((trip as EnhancedTripRecommendation).realData?.hotels || (trip as any).hotels || []).map((hotel: any) => (
+                      {((trip as EnhancedTripRecommendation).realData?.hotels || (trip as EnhancedTripRecommendation).hotels || []).map((hotel) => (
                         <Card
                           key={hotel.id}
                           className={`cursor-pointer transition-all hover:shadow-md ${selectedHotel?.id === hotel.id
@@ -408,23 +479,23 @@ export const TripDetailModal = ({
                             )}
 
                             <h4 className="font-semibold text-gray-900 text-sm leading-tight mb-1">{hotel.name}</h4>
-                            {hotel.address && <p className="text-xs text-gray-500 mb-2 line-clamp-2">{hotel.address}</p>}
-                            {hotel.description && <p className="text-xs text-gray-600 mb-2 line-clamp-2">{hotel.description}</p>}
+                            {'address' in hotel && hotel.address && <p className="text-xs text-gray-500 mb-2 line-clamp-2">{hotel.address}</p>}
+                            {('description' in hotel && hotel.description) && <p className="text-xs text-gray-600 mb-2 line-clamp-2">{hotel.description}</p>}
 
                             <div className="flex items-end justify-between mb-2">
                               <div>
                                 <p className="text-xs text-gray-500">From</p>
                                 <p className="text-lg font-bold text-emerald-600">
-                                  {formatCurrency(hotel.minPrice || hotel.pricePerNight)}
+                                  {formatCurrency('minPrice' in hotel ? hotel.minPrice : hotel.pricePerNight)}
                                   <span className="text-xs text-gray-500 font-normal">/night</span>
                                 </p>
                               </div>
-                              {hotel.rating && (
+                              {(hotel.rating || ('rating' in hotel && hotel.rating)) && (
                                 <div className="flex items-center gap-1">
                                   <svg className="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
                                     <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                                   </svg>
-                                  <span className="text-sm font-medium text-gray-700">{hotel.rating}</span>
+                                  <span className="text-sm font-medium text-gray-700">{'rating' in hotel ? hotel.rating : hotel.rating}</span>
                                 </div>
                               )}
                             </div>
@@ -814,7 +885,13 @@ export const TripDetailModal = ({
                           <p className="font-semibold text-gray-900">{(trip as EnhancedTripRecommendation).realData!.countryInfo.timezone}</p>
                         </div>
                         <div className="flex items-center gap-2">
-                          <img src={(trip as EnhancedTripRecommendation).realData!.countryInfo.flag} alt="Flag" className="w-8 h-6 object-cover rounded" />
+                          <Image 
+                            src={(trip as EnhancedTripRecommendation).realData!.countryInfo.flag} 
+                            alt="Flag" 
+                            width={32}
+                            height={24}
+                            className="object-cover rounded" 
+                          />
                           <div className="text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded-md">
                             Live from REST Countries
                           </div>

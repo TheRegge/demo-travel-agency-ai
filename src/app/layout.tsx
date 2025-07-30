@@ -13,7 +13,6 @@ export const metadata: Metadata = {
   description: "Discover your perfect trip with our intelligent AI travel assistant. Get personalized recommendations, detailed itineraries, and budget-friendly options for unforgettable adventures.",
   keywords: ["travel", "AI", "vacation planning", "travel assistant", "itinerary", "destinations"],
   authors: [{ name: "DreamVoyager Travel" }],
-  viewport: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no",
   openGraph: {
     title: "DreamVoyager Travel - AI-Powered Travel Planning",
     description: "Discover your perfect trip with our intelligent AI travel assistant.",
@@ -28,6 +27,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+      </head>
       <body className={`${inter.variable} font-sans antialiased`}>
         <TravelProvider>
           {children}
