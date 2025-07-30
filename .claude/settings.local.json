@@ -9,7 +9,8 @@
       "Bash(npx shadcn@latest add dialog)",
       "Bash(npx shadcn-ui:*)",
       "Bash(npm run build:*)",
-      "mcp__Ref__ref_search_documentation"
+      "mcp__Ref__ref_search_documentation",
+      "Bash(npm run lint:*)"
     ],
     "deny": []
   }

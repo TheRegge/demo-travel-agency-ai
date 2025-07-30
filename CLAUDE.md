@@ -278,3 +278,9 @@ interface AITripResponse {
 - **Responsive Testing**: Verify mobile, tablet, and desktop layouts
 
 Refer to `docs/travel_agency_prd.md` for complete technical specifications, user experience design details, and implementation examples.
+
+## Project Interaction Notes
+
+### Chat Interface Design
+- **Do NOT create an independant /chat page for this application**
+- All chat-related interactions happen on the home page of this application
