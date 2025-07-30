@@ -5,7 +5,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { ResponsiveTropicalBackground } from "@/components/illustrations"
 import { ConversationInput, LoadingSpinner } from "@/components/conversation"
 import { ConversationInputRef } from "@/components/conversation/ConversationInput"
-import { Logo } from "@/components/layout/Logo"
+import { AnimatedLogo } from "@/components/layout"
 import { WelcomeMessage } from "@/components/chat/WelcomeMessage"
 import { ChatMessageBubble } from "@/components/chat/ChatMessageBubble"
 import { InlineTripCard } from "@/components/trips/InlineTripCard"
@@ -115,7 +115,7 @@ export default function HomePage() {
 
       {/* Floating Logo */}
       <header className="absolute top-4 left-4 sm:top-6 sm:left-6" style={{ zIndex: Z_INDEX.header }} role="banner">
-        <Logo />
+        <AnimatedLogo hasMessages={travelState.chatHistory.some(msg => msg.role === 'user')} />
       </header>
 
       {/* Initial Welcome Message - Always centered when no messages */}
