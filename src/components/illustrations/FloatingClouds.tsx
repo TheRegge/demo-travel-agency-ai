@@ -10,7 +10,7 @@ export function FloatingClouds({ className = '', animate = true }: FloatingCloud
     <div className={`absolute inset-0 overflow-hidden pointer-events-none ${className}`}>
       {/* Cloud 1 - Large */}
       <svg
-        className={`absolute top-12 -left-20 w-32 h-20 text-white opacity-80 ${animate ? 'animate-cloud-drift' : ''}`}
+        className={`absolute top-1/3 -left-20 w-32 h-20 text-white opacity-80 ${animate ? 'animate-cloud-drift' : ''}`}
         style={{ animationDelay: '0s', animationDuration: '30s' }}
         viewBox="0 0 128 80"
         fill="none"
@@ -26,8 +26,8 @@ export function FloatingClouds({ className = '', animate = true }: FloatingCloud
 
       {/* Cloud 2 - Medium */}
       <svg
-        className={`absolute top-24 left-1/3 w-24 h-16 text-white opacity-70 ${animate ? 'animate-cloud-drift' : ''}`}
-        style={{ animationDelay: '10s', animationDuration: '40s' }}
+        className={`absolute left-1/3 w-24 h-16 text-white opacity-70 ${animate ? 'animate-cloud-drift' : ''}`}
+        style={{ top: '40%', animationDelay: '10s', animationDuration: '40s' }}
         viewBox="0 0 96 64"
         fill="none"
         aria-hidden="true"
@@ -42,8 +42,8 @@ export function FloatingClouds({ className = '', animate = true }: FloatingCloud
 
       {/* Cloud 3 - Small */}
       <svg
-        className={`absolute top-8 right-1/4 w-20 h-12 text-white opacity-60 ${animate ? 'animate-cloud-drift' : ''}`}
-        style={{ animationDelay: '20s', animationDuration: '35s' }}
+        className={`absolute right-1/4 w-20 h-12 text-white opacity-60 ${animate ? 'animate-cloud-drift' : ''}`}
+        style={{ top: '30%', animationDelay: '20s', animationDuration: '35s' }}
         viewBox="0 0 80 48"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
@@ -58,8 +58,8 @@ export function FloatingClouds({ className = '', animate = true }: FloatingCloud
 
       {/* Cloud 4 - Large right side */}
       <svg
-        className={`absolute top-20 -right-16 w-28 h-18 text-white opacity-75 ${animate ? 'animate-cloud-drift' : ''}`}
-        style={{ animationDelay: '15s', animationDuration: '45s' }}
+        className={`absolute -right-16 w-28 h-18 text-white opacity-75 ${animate ? 'animate-cloud-drift' : ''}`}
+        style={{ top: '35%', animationDelay: '15s', animationDuration: '45s' }}
         viewBox="0 0 112 72"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
