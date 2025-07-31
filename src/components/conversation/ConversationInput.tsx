@@ -6,6 +6,8 @@
 import { FormEvent, forwardRef, useImperativeHandle, useRef } from 'react'
 import { ConversationInputProps } from '@/types/conversation'
 import { useCharacterLimit } from '@/hooks/useCharacterLimit'
+import { useCaptcha } from '@/hooks/useCaptcha'
+import { CaptchaWidget } from '@/components/security/CaptchaWidget'
 
 export interface ConversationInputRef {
   focus: () => void
@@ -17,11 +19,14 @@ export const ConversationInput = forwardRef<ConversationInputRef, ConversationIn
   onSubmit,
   disabled = false,
   maxLength = 750,
-  placeholder = "I want to visit beaches in Thailand with my family on a $3000 budget..."
+  placeholder = "I want to visit beaches in Thailand with my family on a $3000 budget...",
+  requiresCaptcha = false,
+  onCaptchaVerify
 }, ref) => {
 
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const { count, isValid, getColorClass, maxChars } = useCharacterLimit(value, maxLength)
+  const { captchaToken, isVisible, setCaptchaToken, showCaptcha, resetCaptcha } = useCaptcha()
 
   useImperativeHandle(ref, () => ({
     focus: () => {
@@ -32,7 +37,28 @@ export const ConversationInput = forwardRef<ConversationInputRef, ConversationIn
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault()
     if (value.trim() && isValid && !disabled) {
-      onSubmit(value.trim())
+      // If CAPTCHA is required but not completed, show CAPTCHA
+      if (requiresCaptcha && !captchaToken) {
+        showCaptcha()
+        return
+      }
+      
+      // Submit with CAPTCHA token if available
+      onSubmit(value.trim(), captchaToken || undefined)
+      
+      // Reset CAPTCHA after successful submission
+      resetCaptcha()
+    }
+  }
+
+  const handleCaptchaVerify = (token: string) => {
+    setCaptchaToken(token)
+    onCaptchaVerify?.(token)
+    
+    // Auto-submit if form is ready
+    if (value.trim() && isValid && !disabled) {
+      onSubmit(value.trim(), token)
+      resetCaptcha()
     }
   }
 
@@ -79,22 +105,44 @@ export const ConversationInput = forwardRef<ConversationInputRef, ConversationIn
           autoFocus
         />
 
+        {/* CAPTCHA Widget - positioned above send button */}
+        <CaptchaWidget
+          isVisible={isVisible}
+          onVerify={handleCaptchaVerify}
+          onExpire={() => setCaptchaToken(null)}
+          onError={() => setCaptchaToken(null)}
+          className="bottom-16 right-4 sm:bottom-18 sm:right-6 md:bottom-20 md:right-8"
+        />
+
         {/* iPhone-style send button */}
         <button
           type="submit"
-          disabled={!value.trim() || !isValid || disabled}
+          disabled={!value.trim() || !isValid || disabled || (requiresCaptcha && !captchaToken && !isVisible)}
           className="absolute bottom-4 right-4 sm:bottom-6 sm:right-6 md:bottom-8 md:right-8 w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-sky-500 to-emerald-500 hover:from-sky-600 hover:to-emerald-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-full shadow-lg transition-all duration-200 transform hover:scale-105 disabled:hover:scale-100 flex items-center justify-center"
-          aria-label="Send message"
+          aria-label={requiresCaptcha && !captchaToken ? "Complete security check to send message" : "Send message"}
         >
-          <svg
-            className="w-5 h-5 sm:w-6 sm:h-6 transform -rotate-45 translate-0.25 -translate-y-0.25"
-            fill="currentColor"
-            viewBox="0 0 24 24"
-            aria-hidden="true"
-            role="presentation"
-          >
-            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
-          </svg>
+          {requiresCaptcha && !captchaToken && !isVisible ? (
+            // Security icon when CAPTCHA is required
+            <svg
+              className="w-5 h-5 sm:w-6 sm:h-6"
+              fill="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/>
+            </svg>
+          ) : (
+            // Regular send icon
+            <svg
+              className="w-5 h-5 sm:w-6 sm:h-6 transform -rotate-45 translate-0.25 -translate-y-0.25"
+              fill="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+              role="presentation"
+            >
+              <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+            </svg>
+          )}
         </button>
       </div>
     </form>

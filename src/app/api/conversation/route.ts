@@ -70,8 +70,13 @@ export async function POST(request: NextRequest) {
       hasContext: !!body.context
     })
     
+    // Get client IP for security analysis
+    const clientIP = request.ip || request.headers.get('x-forwarded-for') || 'unknown'
+    
     // Security validation and sanitization
-    const securityCheck = securityService.validateInput(body)
+    const securityCheck = await securityService.validateInput(body, clientIP, body.captchaToken)
+    console.log('🔒 Security check result:', securityCheck)
+    
     if (!securityCheck.isValid) {
       // Log security event
       securityService.logSecurityEvent({
@@ -79,9 +84,24 @@ export async function POST(request: NextRequest) {
         severity: securityCheck.severity || 'low',
         details: { 
           error: securityCheck.error,
-          patterns: securityCheck.detectedPatterns 
+          patterns: securityCheck.detectedPatterns,
+          requiresCaptcha: securityCheck.requiresCaptcha,
+          suspiciousScore: securityCheck.suspiciousScore
         }
       })
+      
+      // Return CAPTCHA requirement if needed
+      if (securityCheck.requiresCaptcha) {
+        return NextResponse.json(
+          { 
+            success: false,
+            error: 'CAPTCHA_REQUIRED',
+            message: securityCheck.error || 'Please complete the security verification to continue.',
+            requiresCaptcha: true
+          },
+          { status: 429 } // Too Many Requests
+        )
+      }
       
       return NextResponse.json(
         { 
@@ -95,7 +115,10 @@ export async function POST(request: NextRequest) {
     
     // Get sanitized input
     const sanitized = securityService.sanitizeInput(body)
+    console.log('🧹 Sanitized input result:', !!sanitized)
+    
     if (!sanitized) {
+      console.log('❌ Sanitization failed')
       return NextResponse.json(
         { 
           success: false,

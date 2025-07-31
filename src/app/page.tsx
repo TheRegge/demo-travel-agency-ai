@@ -213,6 +213,7 @@ export default function HomePage() {
             onSubmit={handleSubmit}
             disabled={conversationState.isLoading}
             maxLength={750}
+            requiresCaptcha={conversationState.requiresCaptcha || false}
           />
         </div>
       </section>

@@ -56,8 +56,8 @@ class RateLimitService {
   /**
    * Gets the client IP from request headers
    */
-  private getClientIP(): string {
-    const headersList = headers()
+  private async getClientIP(): Promise<string> {
+    const headersList = await headers()
     
     // Check various headers that might contain the real IP
     const forwardedFor = headersList.get('x-forwarded-for')
@@ -135,7 +135,7 @@ class RateLimitService {
    * Checks rate limit status for the current request
    */
   async checkRateLimit(): Promise<RateLimitStatus> {
-    const ip = this.getClientIP()
+    const ip = await this.getClientIP()
     const usage = this.getDailyUsage(ip)
     
     // Remove expired sessions
@@ -227,7 +227,7 @@ class RateLimitService {
    * Records token usage for the current session
    */
   async recordUsage(tokens: number, sessionId?: string): Promise<void> {
-    const ip = this.getClientIP()
+    const ip = await this.getClientIP()
     const usage = this.getDailyUsage(ip)
     const now = new Date()
     
@@ -262,7 +262,7 @@ class RateLimitService {
     today: DailyUsage
     resetTime: Date
   }> {
-    const ip = this.getClientIP()
+    const ip = await this.getClientIP()
     const usage = this.getDailyUsage(ip)
     
     return {

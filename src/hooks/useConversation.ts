@@ -19,7 +19,8 @@ const INITIAL_STATE: ConversationState = {
   userInput: '',
   messages: [],
   error: null,
-  waitingForClarification: false
+  waitingForClarification: false,
+  requiresCaptcha: false
 }
 
 export const useConversation = (): UseConversationReturn => {
@@ -30,7 +31,7 @@ export const useConversation = (): UseConversationReturn => {
   /**
    * Submit a message to the AI service
    */
-  const submitMessage = useCallback(async (message: string) => {
+  const submitMessage = useCallback(async (message: string, captchaToken?: string) => {
     if (!message.trim()) return
 
     // Set loading state in both local and global context
@@ -67,8 +68,8 @@ export const useConversation = (): UseConversationReturn => {
         content: msg.content
       }))
       
-      // Get AI response, passing conversation history
-      const response = await conversationService.getResponse(message, formattedHistory)
+      // Get AI response, passing conversation history and CAPTCHA token
+      const response = await conversationService.getResponse(message, formattedHistory, undefined, captchaToken)
 
       if (response.success) {
         
@@ -146,12 +147,18 @@ export const useConversation = (): UseConversationReturn => {
           })
         }
         
+        // Check if CAPTCHA is required
+        const requiresCaptcha = response.requiresCaptcha || 
+          response.error === 'CAPTCHA_REQUIRED' || 
+          (response.message && response.message.includes('security verification'))
+
         setState(prev => ({
           ...prev,
           isLoading: false,
-          error: response.message || 'Something went wrong. Please try again.',
+          error: requiresCaptcha ? null : (response.message || 'Something went wrong. Please try again.'),
           currentResponse: '',
-          userInput: '' // Ensure input stays cleared
+          userInput: requiresCaptcha ? prev.userInput : '', // Keep input if CAPTCHA needed
+          requiresCaptcha
         }))
         travelActions.setIsTyping(false)
         travelActions.setError(response.message || 'Something went wrong. Please try again.')

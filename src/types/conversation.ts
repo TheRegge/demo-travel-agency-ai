@@ -23,6 +23,8 @@ export interface ConversationState {
   clarificationQuestions?: ClarificationQuestion[]
   conversationContext?: ConversationContext
   waitingForClarification: boolean
+  // Security features
+  requiresCaptcha?: boolean
 }
 
 // Rate limit information interface
@@ -49,6 +51,8 @@ export interface AIResponse {
   conversationContext?: ConversationContext
   // Rate limiting information
   rateLimitInfo?: RateLimitInfo
+  // Security features
+  requiresCaptcha?: boolean
 }
 
 // TripRecommendation is imported from './travel' at the top
@@ -92,10 +96,12 @@ export interface ConversationDisplayProps {
 export interface ConversationInputProps {
   value: string
   onChange: (value: string) => void
-  onSubmit: (value: string) => void
+  onSubmit: (value: string, captchaToken?: string) => void
   disabled?: boolean
   maxLength: number
   placeholder?: string
+  requiresCaptcha?: boolean
+  onCaptchaVerify?: (token: string) => void
 }
 
 export interface LoadingSpinnerProps {

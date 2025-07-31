@@ -5,8 +5,7 @@
 
 import { 
   AIResponse, 
-  ConversationService, 
-  ValidationResult
+  ConversationService
 } from '@/types/conversation'
 import { ConversationContext, ClarificationQuestion } from '@/types/travel'
 import { 
@@ -17,50 +16,7 @@ import {
 } from './clarificationService'
 import { contextStorage } from './contextStorageService'
 
-// Security validation patterns
-const FORBIDDEN_PATTERNS = [
-  'ignore previous',
-  'system:',
-  'assistant:',
-  'forget your',
-  'pretend you are',
-  'act as if'
-]
-
-/**
- * Input validation utility with security checks
- */
-const validateInput = (input: string): ValidationResult => {
-  const trimmedInput = input.trim()
-  const lowerInput = trimmedInput.toLowerCase()
-  const errors: string[] = []
-
-  if (!trimmedInput) {
-    errors.push('Please enter your travel preferences')
-  }
-
-  if (trimmedInput.length > 1000) {
-    errors.push('Message is too long. Please keep it under 1000 characters.')
-  }
-
-  if (trimmedInput.length < 10) {
-    errors.push('Please provide more details about your dream trip')
-  }
-
-  // Basic prompt injection protection
-  const hasSecurityIssue = FORBIDDEN_PATTERNS.some(pattern => 
-    lowerInput.includes(pattern.toLowerCase())
-  )
-  
-  if (hasSecurityIssue) {
-    errors.push('Please focus on travel planning questions only.')
-  }
-
-  return {
-    isValid: errors.length === 0,
-    errors
-  }
-}
+// Note: All validation is now handled server-side by securityService
 
 
 /**
@@ -70,17 +26,9 @@ class ConversationServiceImpl implements ConversationService {
   /**
    * Get AI response for user input via server-side API
    */
-  async getResponse(input: string, conversationHistory: { type: string; content: string }[] = [], context?: ConversationContext): Promise<AIResponse> {
+  async getResponse(input: string, conversationHistory: { type: string; content: string }[] = [], context?: ConversationContext, captchaToken?: string): Promise<AIResponse> {
     try {
-      // Validate input client-side first
-      const validation = this.validateInput(input)
-      if (!validation.isValid) {
-        return {
-          success: false,
-          message: validation.errors[0] || 'Invalid input provided',
-          error: 'INVALID_INPUT'
-        }
-      }
+      // Note: All validation is now done server-side including CAPTCHA verification
 
       // Load persistent context and analyze input with accumulated context
       const persistentContext = contextStorage.loadContext()
@@ -113,7 +61,8 @@ class ConversationServiceImpl implements ConversationService {
       const requestBody = {
         input,
         conversationHistory,
-        context: currentContext
+        context: currentContext,
+        captchaToken
       }
       
       console.log('🌐 Sending to API:', {
@@ -131,23 +80,23 @@ class ConversationServiceImpl implements ConversationService {
         body: JSON.stringify(requestBody)
       })
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
-        throw new Error(errorData.error || `HTTP ${response.status}`)
-      }
-
-      const data = await response.json()
+      const data = await response.json().catch(() => ({ 
+        success: false, 
+        error: 'Unknown error',
+        message: 'Failed to parse server response'
+      }))
       
-      
+      // Handle both successful and error responses properly
       return {
-        success: data.success,
-        message: data.message,
+        success: data.success || false,
+        message: data.message || 'An error occurred',
         data: data.data,
         error: data.error,
         clarificationNeeded: data.clarificationNeeded,
         clarificationQuestions: data.clarificationQuestions,
         conversationContext: data.conversationContext,
-        rateLimitInfo: data.rateLimitInfo // Include rate limit information
+        rateLimitInfo: data.rateLimitInfo,
+        requiresCaptcha: data.requiresCaptcha // Include CAPTCHA requirement
       }
 
     } catch (error) {
@@ -161,12 +110,7 @@ class ConversationServiceImpl implements ConversationService {
     }
   }
 
-  /**
-   * Validate user input
-   */
-  validateInput(input: string): ValidationResult {
-    return validateInput(input)
-  }
+  // Note: Input validation is now handled server-side
 
   /**
    * Check if user input is answering a clarification question
@@ -219,5 +163,4 @@ class ConversationServiceImpl implements ConversationService {
 // Export singleton instance
 export const conversationService = new ConversationServiceImpl()
 
-// Export for testing
-export { validateInput }
+// Note: Validation functions moved to securityService
