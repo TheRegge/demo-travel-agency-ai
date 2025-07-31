@@ -116,6 +116,7 @@ export interface ConversationContext {
   extractedInfo: ExtractedTravelInfo
   missingInfo: ClarificationQuestionType[]
   conversationStage: "initial" | "clarifying" | "planning" | "refining" | "completed"
+  travelRelevance?: 'travel_related' | 'travel_adjacent' | 'non_travel'
 }
 
 // Enhanced context for persistence and context management

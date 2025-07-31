@@ -15,6 +15,7 @@ interface AIAnalysisResult {
   missingInfo: ClarificationQuestionType[]
   ambiguityLevel: 'clear' | 'somewhat_clear' | 'unclear'
   keywords: string[]
+  travelRelevance: 'travel_related' | 'travel_adjacent' | 'non_travel'
 }
 
 const ANALYSIS_PROMPT = `
@@ -22,9 +23,12 @@ You are a travel planning assistant that analyzes user travel requests.
 
 Your task is to extract structured information from user input and identify what information is missing for making good travel recommendations.
 
+FIRST: Determine if this is a travel-related question or not.
+
 RESPOND WITH VALID JSON ONLY using this exact schema:
 
 {
+  "travelRelevance": "travel_related|travel_adjacent|non_travel", // MANDATORY: Classify the question's relevance to travel
   "destinations": ["destination1", "destination2"], // Array of mentioned places/cities/countries
   "tripType": "single|multi-destination|unknown", // Based on whether they want one place or multiple
   "extractedInfo": {
@@ -54,6 +58,25 @@ RESPOND WITH VALID JSON ONLY using this exact schema:
   "keywords": ["keyword1", "keyword2"] // Relevant travel keywords found
 }
 
+TRAVEL RELEVANCE CLASSIFICATION (CRITICAL):
+
+"travel_related": Direct travel planning questions
+- "I want to visit Paris"
+- "Plan a trip to Thailand"  
+- "Best beaches in Hawaii"
+- "Hotel recommendations for Rome"
+
+"travel_adjacent": Location/culture questions that could lead to travel
+- "What's the weather like in Japan?"
+- "Tell me about Italian food"
+- "What language do they speak in Brazil?"
+
+"non_travel": Questions completely unrelated to travel
+- Math problems ("what is 3 + 5?")
+- General knowledge ("who is the president?")
+- Technical questions ("how do I code?")
+- Random topics ("what's your favorite color?")
+
 CRITICAL EXTRACTION RULES - FOLLOW THESE EXACTLY:
 
 DURATION EXTRACTION (MANDATORY):
@@ -78,6 +101,7 @@ EXAMPLES FOR AI TO FOLLOW:
 Input: "I want to spend a week on a beach in the caribbean in the fall"
 Expected output:
 {
+  "travelRelevance": "travel_related",
   "destinations": ["caribbean"],
   "tripType": "single",
   "extractedInfo": {
@@ -88,6 +112,18 @@ Expected output:
     "period": "in the fall",
     "preferences": ["beach"]
   }
+}
+
+Input: "What is 3 + 5?"
+Expected output:
+{
+  "travelRelevance": "non_travel",
+  "destinations": [],
+  "tripType": "unknown",
+  "extractedInfo": {},
+  "missingInfo": [],
+  "ambiguityLevel": "clear",
+  "keywords": []
 }
 
 ANALYSIS RULES:
@@ -173,7 +209,8 @@ export async function analyzeUserInputWithAI(
       },
       extractedInfo: analysisResult.extractedInfo,
       missingInfo: analysisResult.missingInfo,
-      conversationStage: determineStage(analysisResult.ambiguityLevel, analysisResult.missingInfo.length)
+      conversationStage: determineStage(analysisResult.ambiguityLevel, analysisResult.missingInfo.length),
+      travelRelevance: analysisResult.travelRelevance
     }
 
     return context
@@ -218,7 +255,8 @@ function parseAIAnalysis(responseText: string): AIAnalysisResult {
       },
       missingInfo: Array.isArray(parsed.missingInfo) ? parsed.missingInfo : [],
       ambiguityLevel: ['clear', 'somewhat_clear', 'unclear'].includes(parsed.ambiguityLevel) ? parsed.ambiguityLevel : 'unclear',
-      keywords: Array.isArray(parsed.keywords) ? parsed.keywords : []
+      keywords: Array.isArray(parsed.keywords) ? parsed.keywords : [],
+      travelRelevance: ['travel_related', 'travel_adjacent', 'non_travel'].includes(parsed.travelRelevance) ? parsed.travelRelevance : 'non_travel'
     }
 
   } catch (error) {
