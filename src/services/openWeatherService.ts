@@ -4,6 +4,8 @@
  * Free tier: 1000 calls/day
  */
 
+import { apiUsageService } from './apiUsageService'
+
 export interface WeatherData {
   location: {
     name: string;
@@ -65,14 +67,18 @@ class OpenWeatherService {
     }
 
     try {
+      const startTime = Date.now()
       const response = await fetch(
         `${this.baseUrl}/weather?lat=${lat}&lon=${lon}&appid=${this.apiKey}&units=imperial`
       );
+      const responseTime = Date.now() - startTime
 
       if (!response.ok) {
+        apiUsageService.recordAPICall('openweather', responseTime, true)
         throw new Error(`OpenWeatherMap API error: ${response.status}`);
       }
 
+      apiUsageService.recordAPICall('openweather', responseTime, false)
       const data = await response.json();
 
       return this.formatCurrentWeatherData(data);
@@ -88,14 +94,18 @@ class OpenWeatherService {
     }
 
     try {
+      const startTime = Date.now()
       const response = await fetch(
         `${this.baseUrl}/forecast?lat=${lat}&lon=${lon}&appid=${this.apiKey}&units=imperial&cnt=${days * 8}` // 8 forecasts per day (3-hour intervals)
       );
+      const responseTime = Date.now() - startTime
 
       if (!response.ok) {
+        apiUsageService.recordAPICall('openweather', responseTime, true)
         throw new Error(`OpenWeatherMap API error: ${response.status}`);
       }
 
+      apiUsageService.recordAPICall('openweather', responseTime, false)
       const data = await response.json();
 
       return this.formatForecastData(data);

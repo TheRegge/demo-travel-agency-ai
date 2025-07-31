@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiUsageService } from '@/services/apiUsageService';
 
 interface UnsplashPhoto {
   id: string;
@@ -48,6 +49,7 @@ export async function GET(request: NextRequest) {
     const searchQuery = `${destination} travel destination landmark`;
     const UNSPLASH_API_URL = 'https://api.unsplash.com';
     
+    const startTime = Date.now();
     const response = await fetch(
       `${UNSPLASH_API_URL}/search/photos?query=${encodeURIComponent(searchQuery)}&per_page=1&orientation=landscape&order_by=relevant`,
       {
@@ -58,9 +60,13 @@ export async function GET(request: NextRequest) {
     );
 
     if (!response.ok) {
+      const responseTime = Date.now() - startTime;
+      apiUsageService.recordAPICall('unsplash', responseTime, true);
       throw new Error(`Unsplash API error: ${response.status}`);
     }
 
+    const responseTime = Date.now() - startTime;
+    apiUsageService.recordAPICall('unsplash', responseTime, false);
     const data: UnsplashResponse = await response.json();
     
     if (data.results.length === 0) {
@@ -83,6 +89,7 @@ export async function GET(request: NextRequest) {
 
   } catch (error) {
     console.error('❌ Error fetching destination photo:', error);
+    // API call tracking is handled in the response check above
     
     // Return empty response for gradient fallback
     return NextResponse.json({

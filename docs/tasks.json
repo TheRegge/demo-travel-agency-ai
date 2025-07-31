@@ -396,7 +396,7 @@
       "id": "13",
       "name": "Security & Rate Limiting Implementation",
       "description": "Implement essential security measures and rate limiting to protect against abuse while maintaining good user experience.",
-      "status": "pending",
+      "status": "done",
       "dependsOn": ["11"],
       "phase": "phase2",
       "subtasks": [
@@ -404,21 +404,21 @@
           "id": "13.1",
           "name": "Implement Basic Security Checks",
           "description": "Create security pipeline with input validation (length limits 1000 chars), basic prompt injection detection (forbidden patterns: 'ignore previous', 'system:', 'assistant:'), and content sanitization. Follow the processUserInput example from PRD lines 392-404.",
-          "status": "pending",
+          "status": "done",
           "dependsOn": []
         },
         {
           "id": "13.2",
           "name": "Add IP-based Rate Limiting",
           "description": "Implement simple rate limiting: 5 sessions per day per IP address, 2500 tokens per session, daily reset at midnight UTC. Use browser sessionStorage for client-side tracking and server-side validation. Show user-friendly messages when limits reached.",
-          "status": "pending",
+          "status": "done",
           "dependsOn": ["13.1"]
         },
         {
           "id": "13.3",
           "name": "Implement Cost Controls",
           "description": "Add daily spend cap of $5 with automatic circuit breaker. Track API usage and token consumption. Implement graceful fallback to mock responses when limits exceeded. Add basic console logging for monitoring usage patterns.",
-          "status": "pending",
+          "status": "done",
           "dependsOn": ["13.2"]
         }
       ]

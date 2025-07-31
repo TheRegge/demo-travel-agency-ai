@@ -4,6 +4,8 @@
  * Free tier: 200-10,000 requests/month depending on API
  */
 
+import { apiUsageService } from './apiUsageService'
+
 export interface AmadeusFlightOffer {
   id: string;
   source: string;
@@ -201,13 +203,16 @@ class AmadeusService {
     retryAttempts: number = 3
   ): Promise<Response> {
     let lastError: Error | null = null
+    const startTime = Date.now()
 
     for (let attempt = 1; attempt <= retryAttempts; attempt++) {
       try {
         const response = await apiCall()
+        const responseTime = Date.now() - startTime
         
         // If successful, return immediately
         if (response.ok) {
+          apiUsageService.recordAPICall('amadeus', responseTime, false)
           return response
         }
         
@@ -239,6 +244,10 @@ class AmadeusService {
       }
     }
 
+    // Record the failed API call
+    const responseTime = Date.now() - startTime
+    apiUsageService.recordAPICall('amadeus', responseTime, true)
+    
     throw lastError || new Error('Amadeus API request failed after all retries')
   }
 

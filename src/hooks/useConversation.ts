@@ -6,6 +6,7 @@
 import { useState, useCallback } from 'react'
 import { conversationService } from '@/services/conversationService'
 import { useTravelContext } from '@/contexts/TravelContext'
+import { useRateLimit } from '@/hooks/useRateLimit'
 import { 
   ConversationState, 
   UseConversationReturn,
@@ -24,6 +25,7 @@ const INITIAL_STATE: ConversationState = {
 export const useConversation = (): UseConversationReturn => {
   const [state, setState] = useState<ConversationState>(INITIAL_STATE)
   const { actions: travelActions } = useTravelContext()
+  const rateLimit = useRateLimit()
 
   /**
    * Submit a message to the AI service
@@ -61,7 +63,7 @@ export const useConversation = (): UseConversationReturn => {
     try {
       // Format conversation history for AI service
       const formattedHistory = state.messages.map(msg => ({
-        type: msg.type,
+        type: msg.type === 'ai' ? 'assistant' : msg.type,
         content: msg.content
       }))
       
@@ -69,6 +71,19 @@ export const useConversation = (): UseConversationReturn => {
       const response = await conversationService.getResponse(message, formattedHistory)
 
       if (response.success) {
+        
+        // Update rate limit status from server response
+        if (response.rateLimitInfo) {
+          rateLimit.updateFromServerResponse({
+            sessionsUsed: response.rateLimitInfo.sessionsUsed,
+            sessionsRemaining: response.rateLimitInfo.sessionsRemaining,
+            tokensUsed: response.rateLimitInfo.tokensUsed,
+            tokensRemaining: response.rateLimitInfo.tokensRemaining,
+            resetTime: typeof response.rateLimitInfo.resetTime === 'string' 
+              ? response.rateLimitInfo.resetTime 
+              : response.rateLimitInfo.resetTime.toISOString()
+          })
+        }
         
         // Add AI message to conversation
         const aiMessage: ConversationMessage = {
@@ -118,7 +133,19 @@ export const useConversation = (): UseConversationReturn => {
 
         travelActions.setIsTyping(false)
       } else {
-        // Handle error response
+        // Handle error response - check for rate limit errors
+        if (response.error === 'RATE_LIMIT_EXCEEDED' && response.rateLimitInfo) {
+          rateLimit.updateFromServerResponse({
+            sessionsUsed: response.rateLimitInfo.sessionsUsed,
+            sessionsRemaining: response.rateLimitInfo.sessionsRemaining,
+            tokensUsed: response.rateLimitInfo.tokensUsed,
+            tokensRemaining: response.rateLimitInfo.tokensRemaining,
+            resetTime: typeof response.rateLimitInfo.resetTime === 'string' 
+              ? response.rateLimitInfo.resetTime 
+              : response.rateLimitInfo.resetTime.toISOString()
+          })
+        }
+        
         setState(prev => ({
           ...prev,
           isLoading: false,
@@ -231,14 +258,26 @@ export const useConversation = (): UseConversationReturn => {
     try {
       // Create a summary message based on the clarification answers
       const contextSummary = summarizeContext(state.conversationContext)
-      const clarificationMessage = `Based on your preferences: ${contextSummary}`
+      let clarificationMessage = `Based on your preferences: ${contextSummary}`
+      
+      // Ensure message meets minimum length requirements
+      if (clarificationMessage.length < 15) {
+        clarificationMessage = "Based on your preferences, please provide personalized travel recommendations."
+      }
+      
+      console.log('🔍 Debug clarification:', {
+        contextSummary,
+        clarificationMessage,
+        messageLength: clarificationMessage.length,
+        context: state.conversationContext
+      })
       
       // Don't add the summary as a user message - it's internal
       // The API will handle showing the AI's response
       
       // Format conversation history for AI service
       const formattedHistory = state.messages.map(msg => ({
-        type: msg.type,
+        type: msg.type === 'ai' ? 'assistant' : msg.type,
         content: msg.content
       }))
       

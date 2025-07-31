@@ -25,6 +25,15 @@ export interface ConversationState {
   waitingForClarification: boolean
 }
 
+// Rate limit information interface
+export interface RateLimitInfo {
+  sessionsUsed: number
+  sessionsRemaining: number
+  tokensUsed: number
+  tokensRemaining: number
+  resetTime: Date | string
+}
+
 // AI Response interfaces (matches future real AI structure)
 export interface AIResponse {
   success: boolean
@@ -38,6 +47,8 @@ export interface AIResponse {
   clarificationNeeded?: boolean
   clarificationQuestions?: ClarificationQuestion[]
   conversationContext?: ConversationContext
+  // Rate limiting information
+  rateLimitInfo?: RateLimitInfo
 }
 
 // TripRecommendation is imported from './travel' at the top

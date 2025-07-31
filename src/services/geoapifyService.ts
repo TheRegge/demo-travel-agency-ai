@@ -4,6 +4,8 @@
  * Free tier: 3000 credits/day (1 credit per request, 20 places = 1 credit)
  */
 
+import { apiUsageService } from './apiUsageService'
+
 export interface GeoapifyPlace {
   type: 'Feature';
   properties: {
@@ -89,7 +91,7 @@ export interface GeoapifyPlaceDetails {
 }
 
 class GeoapifyService {
-  private readonly baseUrl = 'https://api.geoapify.com/v1/places';
+  private readonly baseUrl = 'https://api.geoapify.com/v2/places';
   private readonly apiKey = process.env.GEOAPIFY_API_KEY;
 
   constructor() {
@@ -117,11 +119,14 @@ class GeoapifyService {
 
     try {
       const categoriesParam = categories.join(',');
+      const startTime = Date.now();
       const response = await fetch(
         `${this.baseUrl}?categories=${categoriesParam}&filter=circle:${lon},${lat},${radius}&limit=${limit}&apikey=${this.apiKey}`
       );
 
       if (!response.ok) {
+        const responseTime = Date.now() - startTime;
+        apiUsageService.recordAPICall('geoapify', responseTime, true);
         const errorText = await response.text();
         console.error('🚨 Geoapify API Error Details:', {
           status: response.status,
@@ -132,10 +137,13 @@ class GeoapifyService {
         throw new Error(`Geoapify API error: ${response.status} - ${errorText}`);
       }
 
+      const responseTime = Date.now() - startTime;
+      apiUsageService.recordAPICall('geoapify', responseTime, false);
       const data: GeoapifyResponse = await response.json();
       return data.features || [];
     } catch (error) {
       console.error('Error fetching places by radius:', error);
+      // API call tracking is handled in the response check above
       return [];
     }
   }
@@ -154,14 +162,19 @@ class GeoapifyService {
 
     try {
       const categoriesParam = categories.join(',');
+      const startTime = Date.now();
       const response = await fetch(
         `${this.baseUrl}?categories=${categoriesParam}&filter=rect:${lonMin},${latMin},${lonMax},${latMax}&limit=${limit}&apikey=${this.apiKey}`
       );
 
       if (!response.ok) {
+        const responseTime = Date.now() - startTime;
+        apiUsageService.recordAPICall('geoapify', responseTime, true);
         throw new Error(`Geoapify API error: ${response.status}`);
       }
 
+      const responseTime = Date.now() - startTime;
+      apiUsageService.recordAPICall('geoapify', responseTime, false);
       const data: GeoapifyResponse = await response.json();
       return data.features || [];
     } catch (error) {
@@ -176,14 +189,19 @@ class GeoapifyService {
     }
 
     try {
+      const startTime = Date.now();
       const response = await fetch(
         `https://api.geoapify.com/v2/place-details?id=${placeId}&apikey=${this.apiKey}`
       );
 
       if (!response.ok) {
+        const responseTime = Date.now() - startTime;
+        apiUsageService.recordAPICall('geoapify', responseTime, true);
         throw new Error(`Geoapify API error: ${response.status}`);
       }
 
+      const responseTime = Date.now() - startTime;
+      apiUsageService.recordAPICall('geoapify', responseTime, false);
       return await response.json();
     } catch (error) {
       console.error(`Error fetching place details for id "${placeId}":`, error);
@@ -211,12 +229,17 @@ class GeoapifyService {
         url += `&filter=circle:${lon},${lat},${radius}`;
       }
 
+      const startTime = Date.now();
       const response = await fetch(url);
 
       if (!response.ok) {
+        const responseTime = Date.now() - startTime;
+        apiUsageService.recordAPICall('geoapify', responseTime, true);
         throw new Error(`Geoapify API error: ${response.status}`);
       }
 
+      const responseTime = Date.now() - startTime;
+      apiUsageService.recordAPICall('geoapify', responseTime, false);
       const data: GeoapifyResponse = await response.json();
       return data.features || [];
     } catch (error) {

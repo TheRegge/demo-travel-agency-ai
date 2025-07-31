@@ -10,6 +10,8 @@ import { WelcomeMessage } from "@/components/chat/WelcomeMessage"
 import { ChatMessageBubble } from "@/components/chat/ChatMessageBubble"
 import { InlineTripCard } from "@/components/trips/InlineTripCard"
 import { TripDetailModal } from "@/components/trips/TripDetailModal"
+import { RateLimitIndicator } from "@/components/ui/RateLimitIndicator"
+import { SecurityDebugPanel } from "@/components/debug/SecurityDebugPanel"
 import { useConversation } from "@/hooks"
 import { useAutoScroll } from "@/hooks/useAutoScroll"
 import { useRef, useEffect, useState } from "react"
@@ -200,7 +202,10 @@ export default function HomePage() {
 
       {/* Fixed Input Section at Bottom - Absolute positioned */}
       <section className={`absolute left-0 right-0 border-t border-white/20 ${SPACING.containerPadding} py-3 sm:py-4 md:py-6 ${SPACING.inputBottomOffset}`} style={{ zIndex: Z_INDEX.chat }} role="complementary" aria-label="Chat input">
-        <div className="mx-auto max-w-4xl w-full">
+        <div className="mx-auto max-w-4xl w-full space-y-3">
+          {/* Rate Limit Indicator */}
+          <RateLimitIndicator />
+          
           <ConversationInput
             ref={conversationInputRef}
             value={conversationState.userInput}
@@ -213,12 +218,17 @@ export default function HomePage() {
       </section>
 
       {/* AI Extraction Debugger - shows what the AI extracted from user input */}
-      {process.env.SHOW_AI_DEBUG === 'true' && (
+      {process.env.NEXT_PUBLIC_SHOW_AI_DEBUG === 'true' && (
         <AIExtractionDebugger 
           context={conversationState.conversationContext || null}
           userInput={lastUserMessage}
           isVisible={true}
         />
+      )}
+      
+      {/* Security & Rate Limit Debug Panel */}
+      {process.env.NEXT_PUBLIC_SHOW_SECURITY_DEBUG === 'true' && (
+        <SecurityDebugPanel />
       )}
 
       {/* Trip Detail Modal */}

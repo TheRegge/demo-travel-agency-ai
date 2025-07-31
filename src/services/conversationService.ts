@@ -110,17 +110,25 @@ class ConversationServiceImpl implements ConversationService {
       // The API route will use AI analysis to determine if clarification is needed
 
       // Call server-side API
+      const requestBody = {
+        input,
+        conversationHistory,
+        context: currentContext
+      }
+      
+      console.log('🌐 Sending to API:', {
+        input: input.substring(0, 100) + (input.length > 100 ? '...' : ''),
+        inputLength: input.length,
+        historyLength: conversationHistory.length,
+        hasContext: !!currentContext
+      })
       
       const response = await fetch('/api/conversation', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          input,
-          conversationHistory,
-          context: currentContext
-        })
+        body: JSON.stringify(requestBody)
       })
 
       if (!response.ok) {
@@ -138,7 +146,8 @@ class ConversationServiceImpl implements ConversationService {
         error: data.error,
         clarificationNeeded: data.clarificationNeeded,
         clarificationQuestions: data.clarificationQuestions,
-        conversationContext: data.conversationContext
+        conversationContext: data.conversationContext,
+        rateLimitInfo: data.rateLimitInfo // Include rate limit information
       }
 
     } catch (error) {
