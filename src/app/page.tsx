@@ -176,7 +176,7 @@ export default function HomePage() {
                 {/* Loading Spinner */}
                 {conversationState.isLoading && (
                   <div className="flex justify-center py-8">
-                    <LoadingSpinner size="lg" />
+                    <LoadingSpinner size="lg" useRotatingMessages={true} />
                   </div>
                 )}
 

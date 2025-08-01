@@ -107,6 +107,8 @@ export interface ConversationInputProps {
 export interface LoadingSpinnerProps {
   size?: 'sm' | 'md' | 'lg'
   className?: string
+  message?: string
+  useRotatingMessages?: boolean
 }
 
 // Error types

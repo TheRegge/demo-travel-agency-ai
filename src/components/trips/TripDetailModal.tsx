@@ -17,7 +17,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { getDestinationGradient } from '@/services/photoService'
+import { getDestinationGradient, getDestinationPhoto } from '@/services/photoService'
 import { tripCostCalculator, TripConfig, TripCostBreakdown } from '@/services/tripCostCalculator'
 
 // Define FlightOffer type based on the structure in travel.ts
@@ -86,6 +86,25 @@ export const TripDetailModal = ({
   const [costBreakdown, setCostBreakdown] = useState<TripCostBreakdown | null>(null)
   const [isCustomizeExpanded, setIsCustomizeExpanded] = useState(false)
   const [isCostExpanded, setIsCostExpanded] = useState(false)
+
+  // Photo data state
+  const [photoData, setPhotoData] = useState<PhotoData | null>(null)
+
+  // Load destination photo
+  useEffect(() => {
+    if (!trip) return
+
+    const fetchPhoto = async () => {
+      try {
+        const photo = await getDestinationPhoto(trip.destination)
+        setPhotoData(photo)
+      } catch (error) {
+        console.error('Error fetching destination photo:', error)
+      }
+    }
+
+    fetchPhoto()
+  }, [trip])
 
   // Initialize dates based on trip duration
   useEffect(() => {
@@ -175,9 +194,6 @@ export const TripDetailModal = ({
       maximumFractionDigits: 0,
     }).format(amount)
   }
-
-  // Extract photo data if available
-  const photoData = (trip as EnhancedTripRecommendation & { photoData?: PhotoData }).photoData
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
