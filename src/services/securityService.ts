@@ -434,7 +434,11 @@ class SecurityService {
       return {
         input: this.sanitizeText(parsed.input),
         conversationHistory: parsed.conversationHistory.map(msg => {
-          const sanitizedMsg: any = {
+          const sanitizedMsg: {
+            type: 'user' | 'assistant';
+            content: string;
+            timestamp?: string;
+          } = {
             type: msg.type,
             content: this.sanitizeText(msg.content)
           }
