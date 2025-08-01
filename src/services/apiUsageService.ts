@@ -129,14 +129,14 @@ class APIUsageService {
       : 0
     
     const lastCallTime = records.length > 0 
-      ? records[records.length - 1].timestamp 
+      ? records[records.length - 1]?.timestamp 
       : undefined
     
     // Calculate cost for Gemini
     let cost = 0
-    if (provider === 'gemini' && API_PROVIDERS.gemini.costPerCall) {
+    if (provider === 'gemini' && API_PROVIDERS.gemini?.costPerCall) {
       const totalTokens = todayRecords.reduce((sum, r) => sum + (r.tokens || 0), 0)
-      cost = totalTokens * API_PROVIDERS.gemini.costPerCall
+      cost = totalTokens * (API_PROVIDERS.gemini?.costPerCall || 0)
     }
     
     // Calculate quota
@@ -157,12 +157,12 @@ class APIUsageService {
     return {
       callsToday,
       callsThisHour,
-      lastCallTime,
+      ...(lastCallTime && { lastCallTime }),
       errors,
       avgResponseTime: Math.round(avgResponseTime),
-      quotaLimit,
-      quotaRemaining,
-      cost
+      ...(quotaLimit !== undefined && { quotaLimit }),
+      ...(quotaRemaining !== undefined && { quotaRemaining }),
+      ...(cost > 0 && { cost })
     }
   }
   
@@ -201,13 +201,13 @@ class APIUsageService {
         if (usagePercent >= 0.9) {
           warnings.push({
             provider,
-            message: `${API_PROVIDERS[provider].name} has used ${Math.round(usagePercent * 100)}% of quota`,
+            message: `${API_PROVIDERS[provider]?.name || provider} has used ${Math.round(usagePercent * 100)}% of quota`,
             severity: 'critical'
           })
         } else if (usagePercent >= 0.75) {
           warnings.push({
             provider,
-            message: `${API_PROVIDERS[provider].name} approaching limit (${Math.round(usagePercent * 100)}% used)`,
+            message: `${API_PROVIDERS[provider]?.name || provider} approaching limit (${Math.round(usagePercent * 100)}% used)`,
             severity: 'warning'
           })
         }

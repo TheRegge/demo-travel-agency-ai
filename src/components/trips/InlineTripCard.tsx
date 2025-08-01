@@ -8,6 +8,7 @@ import { Card, CardHeader, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { TripRecommendation } from "@/types/travel"
 import { getDestinationPhoto, getDestinationGradient } from '@/services/photoService'
+import Image from 'next/image'
 
 interface InlineTripCardProps {
   trip: TripRecommendation
@@ -97,10 +98,11 @@ export const InlineTripCard = ({
         ) : photoData?.imageUrl && !photoError ? (
           // Photo loaded successfully
           <>
-            <img
+            <Image
               src={photoData.imageUrl}
               alt={photoData.altText}
-              className="w-full h-full object-cover"
+              fill
+              className="object-cover"
               onError={() => setPhotoError(true)}
             />
             <div className="absolute inset-0 bg-black/20"></div>

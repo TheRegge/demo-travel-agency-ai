@@ -78,6 +78,13 @@ export async function GET(request: NextRequest) {
 
     const photo = data.results[0];
     
+    if (!photo) {
+      return NextResponse.json({
+        imageUrl: '',
+        altText: `${destination} destination`
+      });
+    }
+    
     return NextResponse.json({
       imageUrl: photo.urls.regular,
       altText: photo.alt_description || photo.description || `${destination} destination`,

@@ -62,7 +62,10 @@ class RateLimitService {
     // Check various headers that might contain the real IP
     const forwardedFor = headersList.get('x-forwarded-for')
     if (forwardedFor) {
-      return forwardedFor.split(',')[0].trim()
+      const firstIP = forwardedFor.split(',')[0]
+      if (firstIP) {
+        return firstIP.trim()
+      }
     }
     
     const realIP = headersList.get('x-real-ip')
@@ -78,7 +81,7 @@ class RateLimitService {
    * Gets the current UTC date string
    */
   private getCurrentDateUTC(): string {
-    return new Date().toISOString().split('T')[0]
+    return new Date().toISOString().split('T')[0] || new Date().toDateString()
   }
   
   /**
@@ -113,9 +116,11 @@ class RateLimitService {
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
     const cutoffDate = sevenDaysAgo.toISOString().split('T')[0]
     
-    for (const [key, usage] of rateLimitStore.entries()) {
-      if (usage.date < cutoffDate) {
-        rateLimitStore.delete(key)
+    if (cutoffDate) {
+      for (const [key, usage] of rateLimitStore.entries()) {
+        if (usage.date < cutoffDate) {
+          rateLimitStore.delete(key)
+        }
       }
     }
   }

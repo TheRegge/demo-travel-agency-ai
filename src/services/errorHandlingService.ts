@@ -3,8 +3,64 @@
  * Provides centralized error handling and fallback mechanisms for API failures
  */
 
-import { TripRecommendation, EnhancedTripRecommendation } from '@/types/travel'
+import { TripRecommendation, EnhancedTripRecommendation, Hotel } from '@/types/travel'
 import { mockDestinations } from '@/lib/mock-data/destinations'
+
+// Mock data interfaces
+export interface MockCountryData {
+  name: { common: string; official: string };
+  capital: string[];
+  region: string;
+  currency: string;
+  languages: string[];
+  timezone: string;
+  latlng: number[];
+  flag: string;
+}
+
+export interface MockWeatherData {
+  current: {
+    temp: number;
+    feels_like: number;
+    humidity: number;
+    weather: {
+      main: string;
+      description: string;
+      icon: string;
+    };
+  };
+  forecast?: {
+    daily: Array<{
+      dt: number;
+      temp: { day: number; night: number };
+      weather: { main: string; description: string };
+    }>;
+  };
+}
+
+export interface MockAttraction {
+  name: string;
+  category: string;
+  description: string;
+  rating: number;
+}
+
+export interface MockFlightData {
+  airline: string;
+  price: number;
+  duration: string;
+  departureTime: string;
+  arrivalTime: string;
+  stops: number;
+}
+
+export interface MockHotelData {
+  name: string;
+  rating: number;
+  pricePerNight: number;
+  amenities: string[];
+  description: string;
+}
 
 export interface APIError {
   service: string
@@ -89,13 +145,13 @@ class ErrorHandlingService {
     )
   }
 
-  async getCountryDataWithFallback(
+  async getCountryDataWithFallback<T>(
     countryName: string,
-    apiCall: (name: string) => Promise<any>
-  ): Promise<any> {
+    apiCall: (name: string) => Promise<T>
+  ): Promise<T> {
     return this.withFallback(
       () => apiCall(countryName),
-      () => this.getMockCountryData(countryName),
+      () => this.getMockCountryData(countryName) as T,
       'CountryData',
       {
         retryAttempts: 2,
@@ -104,14 +160,14 @@ class ErrorHandlingService {
     )
   }
 
-  async getWeatherDataWithFallback(
+  async getWeatherDataWithFallback<T>(
     lat: number,
     lon: number,
-    apiCall: (lat: number, lon: number) => Promise<any>
-  ): Promise<any> {
+    apiCall: (lat: number, lon: number) => Promise<T>
+  ): Promise<T> {
     return this.withFallback(
       () => apiCall(lat, lon),
-      () => this.getMockWeatherData(),
+      () => this.getMockWeatherData() as T,
       'WeatherData',
       {
         retryAttempts: 3,
@@ -120,14 +176,14 @@ class ErrorHandlingService {
     )
   }
 
-  async getAttractionsWithFallback(
+  async getAttractionsWithFallback<T>(
     lat: number,
     lon: number,
-    apiCall: (lat: number, lon: number) => Promise<any[]>
-  ): Promise<any[]> {
+    apiCall: (lat: number, lon: number) => Promise<T[]>
+  ): Promise<T[]> {
     return this.withFallback(
       () => apiCall(lat, lon),
-      () => this.getMockAttractions(),
+      () => this.getMockAttractions() as T[],
       'Attractions',
       {
         retryAttempts: 2,
@@ -136,13 +192,13 @@ class ErrorHandlingService {
     )
   }
 
-  async getFlightDataWithFallback(
+  async getFlightDataWithFallback<T>(
     cityName: string,
-    apiCall: (cityName: string) => Promise<any[]>
-  ): Promise<any[]> {
+    apiCall: (cityName: string) => Promise<T[]>
+  ): Promise<T[]> {
     return this.withFallback(
       () => apiCall(cityName),
-      () => this.getMockFlightData(cityName),
+      () => this.getMockFlightData(cityName) as T[],
       'FlightData',
       {
         retryAttempts: 2,
@@ -152,13 +208,13 @@ class ErrorHandlingService {
     )
   }
 
-  async getHotelDataWithFallback(
+  async getHotelDataWithFallback<T>(
     cityName: string,
-    apiCall: (cityName: string) => Promise<any[]>
-  ): Promise<any[]> {
+    apiCall: (cityName: string) => Promise<T[]>
+  ): Promise<T[]> {
     return this.withFallback(
       () => apiCall(cityName),
-      () => this.getMockHotelData(cityName),
+      () => this.getMockHotelData(cityName) as T[],
       'HotelData',
       {
         retryAttempts: 2,
@@ -171,22 +227,36 @@ class ErrorHandlingService {
   private createMockEnhancedTrips(trips: TripRecommendation[]): EnhancedTripRecommendation[] {
     return trips.map(trip => {
       // Find matching mock destination to get hotel data
-      const mockDest = mockDestinations.find(dest => 
-        dest.name.toLowerCase().includes(trip.destination.toLowerCase().split(',')[0]) ||
-        trip.destination.toLowerCase().includes(dest.name.toLowerCase().split(',')[0])
-      )
+      const mockDest = mockDestinations.find(dest => {
+        const tripDest = trip.destination.toLowerCase().split(',')[0] || ''
+        const destName = dest.name.toLowerCase().split(',')[0] || ''
+        return dest.name.toLowerCase().includes(tripDest) ||
+               trip.destination.toLowerCase().includes(destName)
+      })
       
       // Always ensure we have hotels - prioritize: trip.hotels → mock destination → generated
-      let hotels = trip.hotels || mockDest?.hotels
+      let hotels: Hotel[]
       let hotelSource: 'api' | 'mock' | 'generated' = 'generated'
       
       if (trip.hotels && trip.hotels.length > 0) {
+        hotels = trip.hotels
         hotelSource = 'mock' // Trip already had hotels (likely from AI)
       } else if (mockDest?.hotels && mockDest.hotels.length > 0) {
+        hotels = mockDest.hotels
         hotelSource = 'mock' // Got hotels from mock destination
       } else {
         // Generate hotels if none found
-        hotels = this.generateHotelsForDestination(trip.destination)
+        const mockHotels = this.generateHotelsForDestination(trip.destination)
+        hotels = mockHotels.map(h => ({
+          id: `hotel-${h.name.toLowerCase().replace(/\s+/g, '-')}`,
+          name: h.name,
+          type: h.pricePerNight < 100 ? 'budget' as const : h.pricePerNight < 200 ? 'standard' as const : 'luxury' as const,
+          pricePerNight: h.pricePerNight,
+          rating: h.rating,
+          amenities: h.amenities,
+          kidFriendly: h.amenities.includes('Family-friendly'),
+          description: h.description
+        }))
         hotelSource = 'generated'
       }
       
@@ -207,9 +277,9 @@ class ErrorHandlingService {
     })
   }
 
-  private getMockCountryData(countryName: string): any {
+  private getMockCountryData(countryName: string): MockCountryData {
     // Provide realistic mock data for common countries
-    const mockCountries: { [key: string]: any } = {
+    const mockCountries: { [key: string]: MockCountryData } = {
       'Italy': {
         name: { common: 'Italy', official: 'Italian Republic' },
         capital: ['Rome'],
@@ -218,7 +288,7 @@ class ErrorHandlingService {
         languages: ['Italian'],
         timezone: 'UTC+1',
         latlng: [42.8333, 12.8333],
-        flags: { svg: 'https://flagcdn.com/it.svg' }
+        flag: 'https://flagcdn.com/it.svg'
       },
       'France': {
         name: { common: 'France', official: 'French Republic' },
@@ -228,7 +298,7 @@ class ErrorHandlingService {
         languages: ['French'],
         timezone: 'UTC+1',
         latlng: [46, 2],
-        flags: { svg: 'https://flagcdn.com/fr.svg' }
+        flag: 'https://flagcdn.com/fr.svg'
       },
       'Spain': {
         name: { common: 'Spain', official: 'Kingdom of Spain' },
@@ -238,7 +308,7 @@ class ErrorHandlingService {
         languages: ['Spanish'],
         timezone: 'UTC+1',
         latlng: [40, -4],
-        flags: { svg: 'https://flagcdn.com/es.svg' }
+        flag: 'https://flagcdn.com/es.svg'
       },
       'Germany': {
         name: { common: 'Germany', official: 'Federal Republic of Germany' },
@@ -248,17 +318,17 @@ class ErrorHandlingService {
         languages: ['German'],
         timezone: 'UTC+1',
         latlng: [51, 9],
-        flags: { svg: 'https://flagcdn.com/de.svg' }
+        flag: 'https://flagcdn.com/de.svg'
       }
     }
 
     // Return specific mock data if available, otherwise generic
     if (mockCountries[countryName]) {
-      return [mockCountries[countryName]]
+      return mockCountries[countryName]
     }
 
     // Generic fallback
-    return [{
+    return {
       name: { common: countryName, official: countryName },
       capital: ['Capital City'],
       region: 'Region',
@@ -266,11 +336,11 @@ class ErrorHandlingService {
       languages: ['Local Language'],
       timezone: 'UTC+0',
       latlng: [0, 0],
-      flags: { svg: '' }
-    }]
+      flag: ''
+    }
   }
 
-  private getMockWeatherData(): any {
+  private getMockWeatherData(): MockWeatherData {
     return {
       current: {
         temp: 22,
@@ -282,80 +352,56 @@ class ErrorHandlingService {
           icon: '01d'
         }
       },
-      forecast: []
+      forecast: {
+        daily: []
+      }
     }
   }
 
-  private getMockAttractions(): any[] {
+  private getMockAttractions(): MockAttraction[] {
     return [
       {
-        id: 'mock-1',
         name: 'Historic City Center',
-        coordinates: [0, 0],
+        category: 'Historic',
         rating: 3,
-        categories: ['Historic', 'Architecture'],
         description: 'Beautiful historic center with traditional architecture'
       },
       {
-        id: 'mock-2',
         name: 'Local Museum',
-        coordinates: [0, 0],
+        category: 'Museums',
         rating: 2,
-        categories: ['Museums', 'Culture'],
         description: 'Fascinating local history and culture'
       }
     ]
   }
 
-  private getMockFlightData(cityName: string): any[] {
+  private getMockFlightData(_cityName: string): MockFlightData[] {
     // Generate mock flight data based on city
     const flightOptions = [
       {
-        id: `mock-flight-${cityName}-1`,
-        price: 450 + Math.floor(Math.random() * 300),
-        currency: 'USD',
-        duration: 'PT8H15M',
-        stops: 0,
         airline: 'AA',
-        departure: {
-          airport: 'NYC',
-          time: '10:30 AM',
-          date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString()
-        },
-        arrival: {
-          airport: cityName.slice(0, 3).toUpperCase(),
-          time: '6:45 PM',
-          date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString()
-        },
-        segments: []
+        price: 450 + Math.floor(Math.random() * 300),
+        duration: 'PT8H15M',
+        departureTime: '10:30 AM',
+        arrivalTime: '6:45 PM',
+        stops: 0
       },
       {
-        id: `mock-flight-${cityName}-2`,
-        price: 380 + Math.floor(Math.random() * 250),
-        currency: 'USD',
-        duration: 'PT10H45M',
-        stops: 1,
         airline: 'DL',
-        departure: {
-          airport: 'NYC',
-          time: '2:15 PM',
-          date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString()
-        },
-        arrival: {
-          airport: cityName.slice(0, 3).toUpperCase(),
-          time: '11:00 PM',
-          date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString()
-        },
-        segments: []
+        price: 380 + Math.floor(Math.random() * 250),
+        duration: 'PT10H45M',
+        departureTime: '2:15 PM',
+        arrivalTime: '11:00 PM',
+        stops: 1
       }
     ]
     
     return flightOptions
   }
 
-  generateHotelsForDestination(destination: string): any[] {
+  generateHotelsForDestination(destination: string): MockHotelData[] {
     // Extract city name from destination (e.g., "Paris, France" -> "Paris")
-    const cityName = destination.split(',')[0].trim()
+    const cityName = destination.split(',')[0]?.trim() || destination
     
     // Generate contextual hotel names based on destination
     const hotelTemplates = [
@@ -409,7 +455,7 @@ class ErrorHandlingService {
     }))
   }
 
-  private getMockHotelData(cityName: string): any[] {
+  private getMockHotelData(cityName: string): MockHotelData[] {
     // Use the same generation logic for API fallback
     return this.generateHotelsForDestination(cityName)
   }
@@ -446,9 +492,12 @@ class ErrorHandlingService {
       if (!stats[error.service]) {
         stats[error.service] = { total: 0, withFallback: 0 }
       }
-      stats[error.service].total++
-      if (error.fallbackUsed) {
-        stats[error.service].withFallback++
+      const serviceStats = stats[error.service]
+      if (serviceStats) {
+        serviceStats.total++
+        if (error.fallbackUsed) {
+          serviceStats.withFallback++
+        }
       }
     })
 

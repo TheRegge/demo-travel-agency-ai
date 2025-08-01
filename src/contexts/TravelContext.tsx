@@ -262,7 +262,7 @@ export function TravelProvider({ children }: TravelProviderProps) {
       const timeoutId = setTimeout(saveContext, 500)
       return () => clearTimeout(timeoutId)
     }
-  }, [state.conversationContext, state.chatHistory.length, state.currentSessionTokens, state.contextLoaded, state.persistentContext])
+  }, [state.conversationContext, state.chatHistory, state.currentSessionTokens, state.contextLoaded, state.persistentContext])
   
   const actions: TravelContextActions = {
     addMessage: (message) => {

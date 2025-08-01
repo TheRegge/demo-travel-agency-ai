@@ -34,7 +34,7 @@ export const getDestinationPhoto = async (destination: string): Promise<{
       attribution: data.attribution
     };
 
-  } catch (error) {
+  } catch {
     
     // Return gradient fallback on error
     return {

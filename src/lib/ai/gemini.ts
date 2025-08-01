@@ -221,7 +221,7 @@ const parseAIResponse = (responseText: string): AITripResponse => {
  * Create user-aware fallback response when AI fails
  * This respects the user's actual request instead of showing random destinations
  */
-const createUserAwareFallbackResponse = (userInput: string, _conversationHistory: { type: string; content: string }[] = []): AITripResponse => {
+const createUserAwareFallbackResponse = (userInput: string): AITripResponse => {
   console.log('🎯 Creating user-aware fallback for:', userInput)
   
   // Extract user preferences from input
@@ -356,7 +356,7 @@ function extractDestinationsFromInput(input: string): string[] {
  */
 const createFallbackResponse = (): AITripResponse => {
   console.warn('⚠️ Using legacy fallback - this should not happen!')
-  return createUserAwareFallbackResponse("general travel request", [])
+  return createUserAwareFallbackResponse("general travel request")
 }
 
 /**
@@ -395,7 +395,7 @@ export const queryGeminiAI = async (
     console.log('🤖 Gemini AI: Falling back to user-request-aware response')
     
     // Return fallback response that respects the user's request
-    return createUserAwareFallbackResponse(userInput, conversationHistory)
+    return createUserAwareFallbackResponse(userInput)
   }
 }
 

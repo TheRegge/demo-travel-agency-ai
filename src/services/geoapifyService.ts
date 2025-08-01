@@ -44,7 +44,7 @@ export interface GeoapifyResponse {
   features: GeoapifyPlace[];
   query: {
     text?: string;
-    parsed?: any;
+    parsed?: Record<string, unknown>;
   };
 }
 
@@ -76,7 +76,7 @@ export interface GeoapifyPlaceDetails {
       attribution: string;
       license: string;
       url: string;
-      raw?: any;
+      raw?: Record<string, unknown>;
     };
     place_id: string;
     rank?: {
@@ -318,19 +318,31 @@ class GeoapifyService {
       rating = 3; // High rating for museums
     }
 
-    return {
+    const attraction = {
       id: place.properties.place_id,
       name: place.properties.name || 'Unnamed Location',
       coordinates: place.geometry.coordinates as [number, number],
       rating,
       categories,
-      address,
-      description: details?.properties.details?.join('. '),
-      phone: details?.properties.phone,
-      website: details?.properties.website,
-      url: details?.properties.website,
-      openingHours: details?.properties.opening_hours
+      ...(address && { address }),
     };
+
+    // Add optional properties only if they exist
+    if (details?.properties.details) {
+      Object.assign(attraction, { description: details.properties.details.join('. ') });
+    }
+    if (details?.properties.phone) {
+      Object.assign(attraction, { phone: details.properties.phone });
+    }
+    if (details?.properties.website) {
+      Object.assign(attraction, { website: details.properties.website });
+      Object.assign(attraction, { url: details.properties.website });
+    }
+    if (details?.properties.opening_hours) {
+      Object.assign(attraction, { openingHours: details.properties.opening_hours });
+    }
+
+    return attraction;
   }
 
   getPopularCategories(): string[] {

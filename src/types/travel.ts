@@ -133,8 +133,8 @@ export interface EnhancedConversationContext extends ConversationContext {
 export interface ContextModification {
   type: 'preference_update' | 'refinement' | 'variation_request' | 'new_query'
   field?: keyof ExtractedTravelInfo
-  previousValue?: any
-  newValue?: any
+  previousValue?: ExtractedTravelInfo[keyof ExtractedTravelInfo]
+  newValue?: ExtractedTravelInfo[keyof ExtractedTravelInfo]
   confidence: number // 0-1 how confident we are about this modification
 }
 
@@ -179,7 +179,7 @@ export interface ContextAwareResponse {
 
 // Conversation management types
 export interface ConversationMemory {
-  establishedFacts: Record<string, any>
+  establishedFacts: Record<string, unknown>
   userPreferences: ExtractedTravelInfo
   conversationHistory: Array<{
     userInput: string

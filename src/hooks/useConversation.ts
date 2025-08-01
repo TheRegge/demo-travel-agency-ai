@@ -148,9 +148,9 @@ export const useConversation = (): UseConversationReturn => {
         }
         
         // Check if CAPTCHA is required
-        const requiresCaptcha = response.requiresCaptcha || 
+        const requiresCaptcha = Boolean(response.requiresCaptcha || 
           response.error === 'CAPTCHA_REQUIRED' || 
-          (response.message && response.message.includes('security verification'))
+          (response.message && response.message.includes('security verification')))
 
         setState(prev => ({
           ...prev,
@@ -177,7 +177,7 @@ export const useConversation = (): UseConversationReturn => {
       travelActions.setIsTyping(false)
       travelActions.setError(errorMessage)
     }
-  }, [travelActions, state.messages])
+  }, [travelActions, state.messages, rateLimit])
 
   /**
    * Clear the conversation
@@ -329,7 +329,7 @@ export const useConversation = (): UseConversationReturn => {
           error: null,
           // Clear clarification state
           waitingForClarification: false,
-          clarificationQuestions: undefined,
+          clarificationQuestions: [],
           // Update context if provided
           ...(response.conversationContext && { conversationContext: response.conversationContext })
         }))

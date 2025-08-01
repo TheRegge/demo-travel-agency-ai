@@ -3,10 +3,10 @@
  * Orchestrates calls to multiple travel APIs to provide comprehensive destination data
  */
 
-import { restCountriesService, Country } from './restCountriesService'
-import { openWeatherService, WeatherData } from './openWeatherService'
+import { restCountriesService } from './restCountriesService'
+import { openWeatherService, WeatherForecast } from './openWeatherService'
 import { geoapifyService, GeoapifyPlace } from './geoapifyService'
-import { amadeusService, AmadeusFlightOffer, AmadeusHotelOffer } from './amadeusService'
+import { amadeusService, SimplifiedFlight, SimplifiedHotel } from './amadeusService'
 import { errorHandlingService } from './errorHandlingService'
 import { RealAPIDestination, EnhancedTripRecommendation, TripRecommendation, Activity } from '@/types/travel'
 import { mockDestinations } from '@/lib/mock-data/destinations'
@@ -26,7 +26,10 @@ class RealDataService {
     // Handle cases like "Rome, Italy" -> "Italy", "Paris, France" -> "France"
     const parts = destination.split(',')
     if (parts.length > 1) {
-      return parts[parts.length - 1].trim()
+      const lastPart = parts[parts.length - 1]
+      if (lastPart) {
+        return lastPart.trim()
+      }
     }
     
     // Handle cases like "Southern Italy" -> "Italy"
@@ -64,8 +67,6 @@ class RealDataService {
       includeFlights = false,
       includeHotels = false,
       maxAttractions = 10,
-      maxFlights = 5,
-      maxHotels = 5,
     } = options
 
     try {
@@ -85,14 +86,25 @@ class RealDataService {
       }
 
       const country = countries[0]
+      if (!country) {
+        console.warn(`Country data missing for "${actualCountryName}"`)
+        return null
+      }
+      
       const [lat, lon] = country.latlng
 
+      const countryInfo = restCountriesService.formatCountryForDestination(country)
+      if (!countryInfo) {
+        console.warn(`Failed to format country info for "${actualCountryName}"`)
+        return null
+      }
+
       const destination: RealAPIDestination = {
-        countryInfo: restCountriesService.formatCountryForDestination(country)
+        countryInfo
       }
 
       // Fetch additional data in parallel
-      const promises: Promise<any>[] = []
+      const promises: Promise<unknown>[] = []
 
       if (includeWeather) {
         promises.push(
@@ -130,36 +142,46 @@ class RealDataService {
       const results = await Promise.allSettled(promises)
 
       // Process results
-      results.forEach((result, index) => {
+      results.forEach((result) => {
         if (result.status === 'fulfilled' && result.value) {
-          const { type, data } = result.value
+          const value = result.value as { type: string; data: unknown }
+          const { type, data } = value
 
           switch (type) {
             case 'weather':
               if (data) {
+                const weatherData = data as { 
+                  current: { 
+                    temp: number; 
+                    feels_like: number; 
+                    humidity: number; 
+                    weather: { main: string; description: string; icon: string; }; 
+                  }; 
+                  forecast?: unknown[] 
+                }
                 destination.weather = {
-                  current: data.current,
+                  current: weatherData.current,
                   forecast: [] // Will be populated separately if needed
                 }
               }
               break
 
             case 'attractions':
-              if (data && data.length > 0) {
-                destination.attractions = data.map((place: GeoapifyPlace) =>
-                  geoapifyService.formatPlaceForDisplay(place)
+              if (data && Array.isArray(data) && data.length > 0) {
+                destination.attractions = data.map((place: unknown) =>
+                  geoapifyService.formatPlaceForDisplay(place as GeoapifyPlace)
                 )
               }
               break
 
             case 'flights':
-              if (data && data.length > 0) {
+              if (data && Array.isArray(data) && data.length > 0) {
                 destination.flights = data
               }
               break
 
             case 'hotels':
-              if (data && data.length > 0) {
+              if (data && Array.isArray(data) && data.length > 0) {
                 destination.hotels = data
               }
               break
@@ -188,8 +210,8 @@ class RealDataService {
       if (realData?.hotels && realData.hotels.length > 0) {
         return { hotels: realData.hotels, source: 'api' as const }
       }
-      if ((trip as any).hotels && (trip as any).hotels.length > 0) {
-        return { hotels: (trip as any).hotels, source: 'mock' as const }
+      if (trip.hotels && trip.hotels.length > 0) {
+        return { hotels: trip.hotels, source: 'mock' as const }
       }
       // Generate hotels if none found
       return { hotels: errorHandlingService.generateHotelsForDestination(normalizedDestination), source: 'generated' as const }
@@ -405,7 +427,7 @@ class RealDataService {
     )
   }
 
-  private async getFlightDataForDestination(cityName: string): Promise<any[]> {
+  private async getFlightDataForDestination(cityName: string): Promise<SimplifiedFlight[]> {
     return errorHandlingService.getFlightDataWithFallback(
       cityName,
       async (city) => {
@@ -435,7 +457,7 @@ class RealDataService {
     )
   }
 
-  private async getHotelDataForDestination(cityName: string): Promise<any[]> {
+  private async getHotelDataForDestination(cityName: string): Promise<SimplifiedHotel[]> {
     return errorHandlingService.getHotelDataWithFallback(
       cityName,
       async (city) => {
@@ -489,7 +511,7 @@ class RealDataService {
     return enhanced
   }
 
-  async getWeatherForecast(countryName: string, days: number = 5): Promise<any[]> {
+  async getWeatherForecast(countryName: string, days: number = 5): Promise<WeatherForecast[]> {
     try {
       const countries = await restCountriesService.getCountryByName(countryName)
       if (!countries || countries.length === 0) {
@@ -504,7 +526,7 @@ class RealDataService {
     }
   }
 
-  async searchAttractionsByCity(cityName: string, limit: number = 20): Promise<any[]> {
+  async searchAttractionsByCity(cityName: string, limit: number = 20): Promise<GeoapifyPlace[]> {
     try {
       return await geoapifyService.getTopAttractionsForCity(cityName, limit)
     } catch (error) {

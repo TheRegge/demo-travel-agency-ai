@@ -12,6 +12,7 @@ import { realDataService } from '@/services/realDataService'
 import { securityService } from '@/services/securityService'
 import { rateLimitService } from '@/services/rateLimitService'
 import { apiUsageService } from '@/services/apiUsageService'
+import type { ConversationContext } from '@/types/travel'
 
 export async function POST(request: NextRequest) {
   try {
@@ -71,7 +72,7 @@ export async function POST(request: NextRequest) {
     })
     
     // Get client IP for security analysis
-    const clientIP = request.ip || request.headers.get('x-forwarded-for') || 'unknown'
+    const clientIP = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown'
     
     // Security validation and sanitization
     const securityCheck = await securityService.validateInput(body, clientIP, body.captchaToken)
@@ -132,7 +133,7 @@ export async function POST(request: NextRequest) {
     const { input, conversationHistory: validHistory } = sanitized
 
     // ALWAYS use AI to analyze user input - AI analysis is required
-    let currentContext: any
+    let currentContext: ConversationContext
     try {
       currentContext = await analyzeUserInputWithAI(input, validHistory)
       console.log('✅ Using AI-based analysis for input:', input.substring(0, 50))

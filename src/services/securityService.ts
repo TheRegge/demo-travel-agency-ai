@@ -446,7 +446,7 @@ class SecurityService {
   logSecurityEvent(event: {
     type: 'prompt_injection' | 'rate_limit' | 'validation_failure'
     severity: 'low' | 'medium' | 'high'
-    details?: any
+    details?: unknown
     ip?: string
   }) {
     // In production, this would send to a security monitoring service

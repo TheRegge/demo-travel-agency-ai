@@ -12,13 +12,14 @@ import {
   EnhancedConversationContext
 } from "@/types/travel"
 import { PersistentConversationContext } from "@/services/contextStorageService"
+import type { ConversationMessage } from '@/types/conversation'
 
 /**
  * DEPRECATED: This keyword-based analysis is no longer used
  * All analysis now happens via AI in aiAnalysisService.ts
  * Keeping this function only for potential fallback scenarios
  */
-export function analyzeUserInput(input: string, conversationHistory: any[] = []): ConversationContext {
+export function analyzeUserInput(input: string, conversationHistory: ConversationMessage[] = []): ConversationContext {
   const lowerInput = input.toLowerCase()
   
   // Extract destinations mentioned
@@ -293,7 +294,7 @@ function determineMissingInfo(extractedInfo: ExtractedTravelInfo, tripTypeHint: 
 /**
  * Determine current stage of conversation
  */
-function determineConversationStage(conversationHistory: any[], ambiguityLevel: "clear" | "somewhat_clear" | "unclear"): "initial" | "clarifying" | "planning" | "refining" {
+function determineConversationStage(conversationHistory: ConversationMessage[], ambiguityLevel: "clear" | "somewhat_clear" | "unclear"): "initial" | "clarifying" | "planning" | "refining" {
   if (conversationHistory.length === 0) return "initial"
   if (ambiguityLevel === "unclear") return "clarifying"
   if (conversationHistory.length < 3) return "planning"
@@ -754,7 +755,7 @@ function determineStageWithHistory(
 ): ConversationContext['conversationStage'] {
   // Don't regress stages unless explicitly starting over
   const stageProgression = ['initial', 'clarifying', 'planning', 'refining', 'completed']
-  const currentIndex = stageProgression.indexOf(existingStage as any)
+  const currentIndex = stageProgression.indexOf(existingStage)
   const newIndex = stageProgression.indexOf(newStage)
   
   // Allow progression or stay at current stage
@@ -772,7 +773,7 @@ function determineStageWithHistory(
  */
 export function analyzeUserInputWithContext(
   input: string,
-  conversationHistory: any[] = [],
+  conversationHistory: ConversationMessage[] = [],
   persistentContext?: PersistentConversationContext
 ): EnhancedConversationContext {
   // First, get base analysis

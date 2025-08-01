@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { MessageBubble } from "./MessageBubble"
@@ -34,13 +34,6 @@ export function ChatContainer({ initialQuery = "", onUserMessage }: ChatContaine
   const [inputValue, setInputValue] = useState("")
   const [showExamples, setShowExamples] = useState(true)
 
-  // Automatically send the initial query when component mounts
-  useEffect(() => {
-    if (initialQuery) {
-      handleSendMessage(initialQuery)
-    }
-  }, [])
-
   const loadMockConversation = (type: ConversationType) => {
     setShowExamples(false)
     setMessages(mockConversations[type])
@@ -64,7 +57,7 @@ export function ChatContainer({ initialQuery = "", onUserMessage }: ChatContaine
     setIsTyping(false)
   }
 
-  const handleSendMessage = (content: string) => {
+  const handleSendMessage = useCallback((content: string) => {
     setShowExamples(false)
     
     // Notify parent component that user has sent a message
@@ -95,7 +88,14 @@ export function ChatContainer({ initialQuery = "", onUserMessage }: ChatContaine
       setMessages(prev => [...prev, aiMessage])
       setIsTyping(false)
     }, 2000)
-  }
+  }, [onUserMessage])
+
+  // Automatically send the initial query when component mounts
+  useEffect(() => {
+    if (initialQuery) {
+      handleSendMessage(initialQuery)
+    }
+  }, [handleSendMessage, initialQuery])
 
   return (
     <div className="w-full max-w-4xl mx-auto h-[600px] flex flex-col">

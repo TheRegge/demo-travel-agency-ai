@@ -239,7 +239,7 @@ class DestinationResolutionService {
 
       for (const word of words) {
         try {
-          const countries = await restCountriesService.getByName(word)
+          const countries = await restCountriesService.getCountryByName(word)
           for (const country of countries) {
             const confidence = this.calculateCountryConfidence(word, country.name.common)
             if (confidence > 60) { // Only include high-confidence matches
@@ -249,7 +249,7 @@ class DestinationResolutionService {
                 country: country.name.common,
                 region: country.region,
                 type: 'country',
-                coordinates: country.latlng ? [country.latlng[1], country.latlng[0]] : undefined,
+                coordinates: country.latlng ? [country.latlng[1], country.latlng[0]] : [0, 0],
                 countryInfo: {
                   capital: country.capital?.[0] || 'N/A',
                   currency: Object.keys(country.currencies || {})[0] || 'N/A',
@@ -261,7 +261,7 @@ class DestinationResolutionService {
               })
             }
           }
-        } catch (error) {
+        } catch {
           // Ignore individual country lookup errors
           console.warn(`Could not find country data for: ${word}`)
         }
@@ -283,9 +283,10 @@ class DestinationResolutionService {
     }
 
     try {
-      const countries = await restCountriesService.getByName(destination.country)
+      const countries = await restCountriesService.getCountryByName(destination.country)
       if (countries.length > 0) {
         const country = countries[0]
+        if (!country) return destination
         return {
           ...destination,
           countryInfo: {
@@ -351,31 +352,39 @@ class DestinationResolutionService {
    * Calculate edit distance between two strings
    */
   private getEditDistance(a: string, b: string): number {
-    const matrix = []
+    const matrix: number[][] = []
 
     for (let i = 0; i <= b.length; i++) {
-      matrix[i] = [i]
+      matrix[i] = []
+    }
+
+    for (let i = 0; i <= b.length; i++) {
+      matrix[i]![0] = i
     }
 
     for (let j = 0; j <= a.length; j++) {
-      matrix[0][j] = j
+      matrix[0]![j] = j
     }
 
     for (let i = 1; i <= b.length; i++) {
       for (let j = 1; j <= a.length; j++) {
+        const prev = matrix[i - 1]?.[j - 1] ?? 0
+        const del = matrix[i - 1]?.[j] ?? 0
+        const ins = matrix[i]?.[j - 1] ?? 0
+        
         if (b.charAt(i - 1) === a.charAt(j - 1)) {
-          matrix[i][j] = matrix[i - 1][j - 1]
+          matrix[i]![j] = prev
         } else {
-          matrix[i][j] = Math.min(
-            matrix[i - 1][j - 1] + 1,
-            matrix[i][j - 1] + 1,
-            matrix[i - 1][j] + 1
+          matrix[i]![j] = Math.min(
+            prev + 1,
+            ins + 1,
+            del + 1
           )
         }
       }
     }
 
-    return matrix[b.length][a.length]
+    return matrix[b.length]?.[a.length] ?? 0
   }
 
   /**
@@ -406,7 +415,7 @@ class DestinationResolutionService {
 
     try {
       const airports = await amadeusService.getAirportInfo(destination.name)
-      if (airports.length > 0) {
+      if (airports.length > 0 && airports[0]) {
         return airports[0].iataCode
       }
     } catch (error) {

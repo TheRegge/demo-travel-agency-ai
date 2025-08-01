@@ -51,6 +51,65 @@ export interface WeatherForecast {
   };
 }
 
+// OpenWeather API response interfaces
+interface OpenWeatherCurrentResponse {
+  coord: { lat: number; lon: number };
+  weather: Array<{
+    id: number;
+    main: string;
+    description: string;
+    icon: string;
+  }>;
+  main: {
+    temp: number;
+    feels_like: number;
+    temp_min: number;
+    temp_max: number;
+    pressure: number;
+    humidity: number;
+  };
+  visibility: number;
+  wind: {
+    speed: number;
+    deg: number;
+  };
+  sys: {
+    country: string;
+    sunrise: number;
+    sunset: number;
+  };
+  name: string;
+  dt: number;
+}
+
+interface OpenWeatherForecastResponse {
+  list: Array<{
+    dt: number;
+    main: {
+      temp: number;
+      temp_min: number;
+      temp_max: number;
+      pressure: number;
+      humidity: number;
+    };
+    weather: Array<{
+      id: number;
+      main: string;
+      description: string;
+      icon: string;
+    }>;
+    wind: {
+      speed: number;
+      deg: number;
+    };
+  }>;
+  city: {
+    name: string;
+    coord: { lat: number; lon: number };
+    country: string;
+  };
+}
+
 class OpenWeatherService {
   private readonly baseUrl = 'https://api.openweathermap.org/data/2.5';
   private readonly apiKey = process.env.OPENWEATHER_API_KEY;
@@ -139,7 +198,7 @@ class OpenWeatherService {
     }
   }
 
-  private formatCurrentWeatherData(data: any): WeatherData {
+  private formatCurrentWeatherData(data: OpenWeatherCurrentResponse): WeatherData {
     return {
       location: {
         name: data.name,
@@ -157,24 +216,26 @@ class OpenWeatherService {
         wind_speed: data.wind.speed,
         wind_direction: data.wind.deg,
         weather: {
-          main: data.weather[0].main,
-          description: data.weather[0].description,
-          icon: data.weather[0].icon,
+          main: data.weather[0]?.main || 'Unknown',
+          description: data.weather[0]?.description || 'No description',
+          icon: data.weather[0]?.icon || '01d',
         },
       },
     };
   }
 
-  private formatForecastData(data: any): WeatherForecast[] {
-    const dailyForecasts: { [key: string]: any[] } = {};
+  private formatForecastData(data: OpenWeatherForecastResponse): WeatherForecast[] {
+    const dailyForecasts: { [key: string]: typeof data.list } = {};
     
     // Group forecasts by date
-    data.list.forEach((item: any) => {
+    data.list.forEach((item) => {
       const date = new Date(item.dt * 1000).toISOString().split('T')[0];
-      if (!dailyForecasts[date]) {
+      if (date && !dailyForecasts[date]) {
         dailyForecasts[date] = [];
       }
-      dailyForecasts[date].push(item);
+      if (date) {
+        dailyForecasts[date]?.push(item);
+      }
     });
 
     // Create daily summaries
@@ -186,14 +247,20 @@ class OpenWeatherService {
       // Use the most common weather condition for the day
       const weatherCounts: { [key: string]: number } = {};
       forecasts.forEach(f => {
-        const weather = f.weather[0].main;
-        weatherCounts[weather] = (weatherCounts[weather] || 0) + 1;
+        const weather = f.weather[0]?.main;
+        if (weather) {
+          weatherCounts[weather] = (weatherCounts[weather] || 0) + 1;
+        }
       });
       
-      const mostCommonWeather = Object.entries(weatherCounts)
-        .sort(([,a], [,b]) => b - a)[0][0];
+      const weatherEntries = Object.entries(weatherCounts).sort(([,a], [,b]) => b - a);
+      const mostCommonWeather = weatherEntries[0]?.[0] || 'Clear';
       
-      const representativeWeather = forecasts.find(f => f.weather[0].main === mostCommonWeather).weather[0];
+      const representativeWeather = forecasts.find(f => f.weather[0]?.main === mostCommonWeather)?.weather[0] || {
+        main: 'Clear',
+        description: 'clear sky',
+        icon: '01d'
+      };
 
       return {
         date,

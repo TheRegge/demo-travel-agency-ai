@@ -4,7 +4,7 @@
  * Syncs with server-side rate limiting for consistent UX
  */
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useTravelContext } from '@/contexts/TravelContext'
 
 export interface RateLimitState {
@@ -33,7 +33,7 @@ const DEFAULT_CONFIG: RateLimitConfig = {
 
 export function useRateLimit(config: Partial<RateLimitConfig> = {}) {
   const { state } = useTravelContext()
-  const finalConfig = { ...DEFAULT_CONFIG, ...config }
+  const finalConfig = useMemo(() => ({ ...DEFAULT_CONFIG, ...config }), [config])
   
   // Local storage keys for persisting rate limit data
   const STORAGE_KEY = 'travel_ai_rate_limit'

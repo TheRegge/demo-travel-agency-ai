@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { TripCardProps } from '@/types/conversation'
 import { EnhancedTripRecommendation } from '@/types/travel'
 import { getDestinationPhoto, getDestinationGradient } from '@/services/photoService'
+import Image from 'next/image'
 
 export const TripCard = ({
   trip,
@@ -69,7 +70,7 @@ export const TripCard = ({
   return (
     <Card 
       className="cursor-pointer hover:shadow-xl focus:shadow-xl focus:ring-4 focus:ring-sky-500/20 focus:outline-none transition-all duration-300 transform hover:scale-[1.02] focus:scale-[1.02] bg-white border-gray-200 rounded-2xl overflow-hidden p-0"
-      onClick={(e) => {
+      onClick={() => {
         handleSelect()
       }}
       onMouseEnter={() => {
@@ -98,10 +99,11 @@ export const TripCard = ({
         ) : photoData?.imageUrl && !photoError ? (
           // Photo loaded successfully
           <>
-            <img
+            <Image
               src={photoData.imageUrl}
               alt={photoData.altText}
-              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+              fill
+              className="object-cover transition-transform duration-300 group-hover:scale-105"
               onError={() => setPhotoError(true)}
             />
             {/* Photo attribution */}

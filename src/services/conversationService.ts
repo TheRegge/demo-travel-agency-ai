@@ -5,16 +5,18 @@
 
 import { 
   AIResponse, 
-  ConversationService
+  ConversationService,
+  ValidationResult
 } from '@/types/conversation'
-import { ConversationContext, ClarificationQuestion } from '@/types/travel'
-import { 
-  generateClarificationQuestions, 
-  generateContextAwareClarificationQuestions,
-  updateContextWithClarification,
-  detectContextModifications
-} from './clarificationService'
-import { contextStorage } from './contextStorageService'
+import { ConversationContext } from '@/types/travel'
+// Note: The following imports are kept for potential future use
+// import { 
+//   generateClarificationQuestions, 
+//   generateContextAwareClarificationQuestions,
+//   updateContextWithClarification,
+//   detectContextModifications
+// } from './clarificationService'
+// import { contextStorage } from './contextStorageService' // Keeping for future use
 
 // Note: All validation is now handled server-side by securityService
 
@@ -31,9 +33,9 @@ class ConversationServiceImpl implements ConversationService {
       // Note: All validation is now done server-side including CAPTCHA verification
 
       // Load persistent context and analyze input with accumulated context
-      const persistentContext = contextStorage.loadContext()
+      // const persistentContext = contextStorage.loadContext()
       let currentContext: ConversationContext
-      let contextModifications: import('@/types/travel').ContextModification[] = []
+      // const contextModifications: import('@/types/travel').ContextModification[] = []
 
       if (context) {
         // Use provided context as-is - let the API handle AI analysis
@@ -113,50 +115,23 @@ class ConversationServiceImpl implements ConversationService {
   // Note: Input validation is now handled server-side
 
   /**
-   * Check if user input is answering a clarification question
+   * Validate user input
    */
-  private isAnsweringClarification(input: string): boolean {
-    // Simple heuristics - could be improved
-    const clarificationIndicators = [
-      /^(single|multi|one|multiple)/i,
-      /^(solo|couple|family|group)/i,
-      /^(budget|moderate|luxury|comfortable)/i,
-      /^\d+\s*(day|week|month)/i,
-      /^(food|culture|nature|city|relaxation)/i
-    ]
+  validateInput(input: string): ValidationResult {
+    const errors: string[] = []
     
-    return clarificationIndicators.some(pattern => pattern.test(input.trim()))
-  }
-
-  /**
-   * Parse clarification answer from user input
-   */
-  private parseClarificationAnswer(input: string): { questionId?: string, answer: string } {
-    // For now, return the input as the answer
-    // In a real implementation, this would parse structured responses
-    return { answer: input.toLowerCase().trim() }
-  }
-
-  /**
-   * Generate a friendly clarification message
-   */
-  private generateClarificationMessage(context: ConversationContext, _questions: ClarificationQuestion[]): string {
-    const { userIntent, conversationStage } = context
-    
-    let message = ""
-    
-    if (conversationStage === "initial") {
-      if (userIntent.destinations && userIntent.destinations.length > 0) {
-        message = `${userIntent.destinations.join(', ')} sounds amazing! `
-      } else {
-        message = "That sounds like a wonderful trip! "
-      }
-      message += "To help me create the perfect recommendations, I have a few questions:"
-    } else {
-      message = "Great! I have a couple more questions to help personalize your recommendations:"
+    if (!input || input.trim().length === 0) {
+      errors.push('Input cannot be empty')
     }
     
-    return message
+    if (input.length > 1000) {
+      errors.push('Input is too long (max 1000 characters)')
+    }
+    
+    return {
+      isValid: errors.length === 0,
+      errors
+    }
   }
 }
 

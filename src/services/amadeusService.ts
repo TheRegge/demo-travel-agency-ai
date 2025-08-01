@@ -185,6 +185,93 @@ export interface PriceVariation {
   base: string;
 }
 
+export interface AirportInfo {
+  type: string;
+  subType: string;
+  name: string;
+  detailedName: string;
+  id: string;
+  self: {
+    href: string;
+    methods: string[];
+  };
+  timeZoneOffset: string;
+  iataCode: string;
+  geoCode: {
+    latitude: number;
+    longitude: number;
+  };
+  address: {
+    cityName: string;
+    cityCode: string;
+    countryName: string;
+    countryCode: string;
+    regionCode: string;
+  };
+  analytics: {
+    travelers: {
+      score: number;
+    };
+  };
+}
+
+export interface FlightSegmentDetails {
+  departure: {
+    iataCode: string;
+    terminal?: string;
+    at: string;
+  };
+  arrival: {
+    iataCode: string;
+    terminal?: string;
+    at: string;
+  };
+  carrierCode: string;
+  number: string;
+  aircraft?: {
+    code: string;
+  };
+  operating?: {
+    carrierCode: string;
+  };
+  duration: string;
+  id: string;
+  numberOfStops: number;
+  blacklistedInEU: boolean;
+}
+
+export interface SimplifiedFlight {
+  id: string;
+  price: number;
+  currency: string;
+  duration: string;
+  stops: number;
+  airline: string;
+  departure: {
+    airport: string;
+    time: string;
+    date: string;
+  };
+  arrival: {
+    airport: string;
+    time: string;
+    date: string;
+  };
+  segments: FlightSegmentDetails[];
+}
+
+export interface SimplifiedHotel {
+  id: string;
+  name: string;
+  rating?: string;
+  address: string;
+  coordinates: [number, number];
+  minPrice: number;
+  currency: string;
+  offers: HotelRoomOffer[];
+  amenities?: string[];
+}
+
 class AmadeusService {
   private readonly baseUrl = 'https://test.api.amadeus.com/v2';
   private readonly apiKey = process.env.AMADEUS_API_KEY;
@@ -378,7 +465,7 @@ class AmadeusService {
     }
   }
 
-  async getAirportInfo(keyword: string): Promise<any[]> {
+  async getAirportInfo(keyword: string): Promise<AirportInfo[]> {
     const token = await this.getAccessToken();
     if (!token) {
       return [];
@@ -405,28 +492,16 @@ class AmadeusService {
     }
   }
 
-  formatFlightOfferForDisplay(offer: AmadeusFlightOffer): {
-    id: string;
-    price: number;
-    currency: string;
-    duration: string;
-    stops: number;
-    airline: string;
-    departure: {
-      airport: string;
-      time: string;
-      date: string;
-    };
-    arrival: {
-      airport: string;
-      time: string;
-      date: string;
-    };
-    segments: any[];
-  } {
+  formatFlightOfferForDisplay(offer: AmadeusFlightOffer): SimplifiedFlight {
     const itinerary = offer.itineraries[0];
+    if (!itinerary || !itinerary.segments || itinerary.segments.length === 0) {
+      throw new Error('Invalid flight offer data');
+    }
     const firstSegment = itinerary.segments[0];
     const lastSegment = itinerary.segments[itinerary.segments.length - 1];
+    if (!firstSegment || !lastSegment) {
+      throw new Error('Invalid flight segments data');
+    }
 
     return {
       id: offer.id,
@@ -449,17 +524,7 @@ class AmadeusService {
     };
   }
 
-  formatHotelOfferForDisplay(hotelOffer: AmadeusHotelOffer): {
-    id: string;
-    name: string;
-    rating?: string;
-    address: string;
-    coordinates: [number, number];
-    minPrice: number;
-    currency: string;
-    offers: any[];
-    amenities?: string[];
-  } {
+  formatHotelOfferForDisplay(hotelOffer: AmadeusHotelOffer): SimplifiedHotel {
     const minPriceOffer = hotelOffer.offers.reduce((min, offer) => 
       parseFloat(offer.price.total) < parseFloat(min.price.total) ? offer : min
     );
@@ -467,13 +532,13 @@ class AmadeusService {
     return {
       id: hotelOffer.hotel.hotelId,
       name: hotelOffer.hotel.name,
-      rating: hotelOffer.hotel.rating,
+      ...(hotelOffer.hotel.rating && { rating: hotelOffer.hotel.rating }),
       address: `${hotelOffer.hotel.address.lines.join(', ')}, ${hotelOffer.hotel.address.cityName}`,
       coordinates: [hotelOffer.hotel.longitude, hotelOffer.hotel.latitude],
       minPrice: parseFloat(minPriceOffer.price.total),
       currency: minPriceOffer.price.currency,
       offers: hotelOffer.offers,
-      amenities: hotelOffer.hotel.amenities,
+      ...(hotelOffer.hotel.amenities && { amenities: hotelOffer.hotel.amenities }),
     };
   }
 

@@ -122,7 +122,7 @@ export const CaptchaWidget = ({
 
           {/* Helper text */}
           <p className="text-xs text-gray-500 mt-2">
-            Please verify you're human to continue
+            Please verify you&apos;re human to continue
           </p>
         </motion.div>
       )}
