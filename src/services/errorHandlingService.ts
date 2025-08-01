@@ -6,6 +6,27 @@
 import { TripRecommendation, EnhancedTripRecommendation, Hotel } from '@/types/travel'
 import { mockDestinations } from '@/lib/mock-data/destinations'
 
+// Import SimplifiedFlight type
+interface SimplifiedFlight {
+  id: string;
+  price: number;
+  currency: string;
+  duration: string;
+  stops: number;
+  airline: string;
+  departure: {
+    airport: string;
+    time: string;
+    date: string;
+  };
+  arrival: {
+    airport: string;
+    time: string;
+    date: string;
+  };
+  segments: unknown[];
+}
+
 // Mock data interfaces
 export interface MockCountryData {
   name: { common: string; official: string };
@@ -46,8 +67,10 @@ export interface MockAttraction {
 }
 
 export interface MockFlightData {
+  id: string;
   airline: string;
   price: number;
+  currency: string;
   duration: string;
   departureTime: string;
   arrivalTime: string;
@@ -198,7 +221,14 @@ class ErrorHandlingService {
   ): Promise<T[]> {
     return this.withFallback(
       () => apiCall(cityName),
-      () => this.getMockFlightData(cityName) as T[],
+      () => {
+        const mockFlights = this.getMockFlightData(cityName);
+        // Convert mock flights to SimplifiedFlight format expected by UI
+        const convertedFlights = mockFlights.map(mockFlight => 
+          this.convertMockFlightToSimplified(mockFlight, cityName)
+        );
+        return convertedFlights as T[];
+      },
       'FlightData',
       {
         retryAttempts: 2,
@@ -375,28 +405,142 @@ class ErrorHandlingService {
     ]
   }
 
-  private getMockFlightData(_cityName: string): MockFlightData[] {
-    // Generate mock flight data based on city
-    const flightOptions = [
+  private getMockFlightData(cityName: string): MockFlightData[] {
+    console.log(`🔄 Generating fallback flight data for ${cityName}`);
+    
+    // Determine price range based on destination characteristics
+    const getFlightPricing = (city: string) => {
+      const cityLower = city.toLowerCase();
+      
+      // European destinations - typically cheaper from US East Coast
+      if (cityLower.includes('london') || cityLower.includes('paris') || cityLower.includes('dublin') || 
+          cityLower.includes('amsterdam') || cityLower.includes('berlin') || cityLower.includes('rome')) {
+        return { base: 400, range: 300, region: 'Europe' };
+      }
+      
+      // Asian destinations - more expensive, longer flights
+      if (cityLower.includes('tokyo') || cityLower.includes('bangkok') || cityLower.includes('singapore') ||
+          cityLower.includes('seoul') || cityLower.includes('beijing')) {
+        return { base: 800, range: 500, region: 'Asia' };
+      }
+      
+      // South American destinations
+      if (cityLower.includes('rio') || cityLower.includes('lima') || cityLower.includes('buenos aires')) {
+        return { base: 600, range: 400, region: 'South America' };
+      }
+      
+      // Default to mid-range international
+      return { base: 500, range: 350, region: 'International' };
+    };
+
+    const pricing = getFlightPricing(cityName);
+    
+    // Generate 2-4 realistic flight options
+    const flightOptions: MockFlightData[] = [
       {
+        id: `mock-flight-${Date.now()}-1`,
         airline: 'AA',
-        price: 450 + Math.floor(Math.random() * 300),
-        duration: 'PT8H15M',
+        price: pricing.base + Math.floor(Math.random() * pricing.range),
+        currency: 'USD',
+        duration: pricing.region === 'Asia' ? 'PT14H30M' : pricing.region === 'Europe' ? 'PT8H15M' : 'PT11H45M',
         departureTime: '10:30 AM',
-        arrivalTime: '6:45 PM',
+        arrivalTime: pricing.region === 'Asia' ? '2:00 PM+1' : pricing.region === 'Europe' ? '6:45 PM' : '10:15 PM',
         stops: 0
       },
       {
-        airline: 'DL',
-        price: 380 + Math.floor(Math.random() * 250),
-        duration: 'PT10H45M',
+        id: `mock-flight-${Date.now()}-2`,
+        airline: pricing.region === 'Europe' ? 'VS' : 'DL',
+        price: pricing.base - 50 + Math.floor(Math.random() * (pricing.range - 100)),
+        currency: 'USD',
+        duration: pricing.region === 'Asia' ? 'PT16H20M' : pricing.region === 'Europe' ? 'PT10H30M' : 'PT13H15M',
         departureTime: '2:15 PM',
-        arrivalTime: '11:00 PM',
+        arrivalTime: pricing.region === 'Asia' ? '8:35 PM+1' : pricing.region === 'Europe' ? '12:45 PM+1' : '3:30 AM+1',
         stops: 1
+      },
+      {
+        id: `mock-flight-${Date.now()}-3`,
+        airline: pricing.region === 'Europe' ? 'BA' : 'UA',
+        price: pricing.base + 100 + Math.floor(Math.random() * (pricing.range - 150)),
+        currency: 'USD',
+        duration: pricing.region === 'Asia' ? 'PT15H45M' : pricing.region === 'Europe' ? 'PT9H20M' : 'PT12H30M',
+        departureTime: '6:45 PM',
+        arrivalTime: pricing.region === 'Asia' ? '12:30 PM+2' : pricing.region === 'Europe' ? '4:05 PM+1' : '7:15 AM+1',
+        stops: pricing.region === 'Asia' ? 1 : 0
       }
-    ]
+    ];
     
-    return flightOptions
+    // Return 2-3 options randomly
+    const numOptions = 2 + Math.floor(Math.random() * 2);
+    const selectedOptions = flightOptions.slice(0, numOptions);
+    
+    console.log(`✅ Generated ${selectedOptions.length} fallback flights for ${cityName} (${pricing.region})`);
+    selectedOptions.forEach(flight => {
+      console.log(`  - ${flight.airline}: $${flight.price}, ${flight.duration}, ${flight.stops} stops`);
+    });
+    
+    return selectedOptions;
+  }
+
+  /**
+   * Convert MockFlightData to SimplifiedFlight format expected by UI
+   */
+  convertMockFlightToSimplified(mockFlight: MockFlightData, cityName: string): SimplifiedFlight {
+    // Generate airport codes based on destination
+    const getAirportCodes = (city: string) => {
+      const cityLower = city.toLowerCase();
+      if (cityLower.includes('dublin')) return { departure: 'JFK', arrival: 'DUB' };
+      if (cityLower.includes('london')) return { departure: 'JFK', arrival: 'LHR' };
+      if (cityLower.includes('paris')) return { departure: 'JFK', arrival: 'CDG' };
+      if (cityLower.includes('tokyo')) return { departure: 'JFK', arrival: 'NRT' };
+      if (cityLower.includes('rome')) return { departure: 'JFK', arrival: 'FCO' };
+      if (cityLower.includes('amsterdam')) return { departure: 'JFK', arrival: 'AMS' };
+      // Default fallback
+      return { departure: 'JFK', arrival: 'INT' };
+    };
+
+    const airports = getAirportCodes(cityName);
+    
+    // Parse arrival time to handle +1 day notation
+    const parseArrivalTime = (arrivalTime: string) => {
+      const isNextDay = arrivalTime.includes('+');
+      const time = arrivalTime.replace(/\+\d+$/, '');
+      
+      const today = new Date();
+      const arrivalDate = new Date(today);
+      if (isNextDay) {
+        arrivalDate.setDate(arrivalDate.getDate() + 1);
+      }
+      
+      return {
+        time,
+        date: arrivalDate.toLocaleDateString()
+      };
+    };
+
+    const departureDate = new Date();
+    departureDate.setDate(departureDate.getDate() + 30); // 30 days from now
+    
+    const arrival = parseArrivalTime(mockFlight.arrivalTime);
+
+    return {
+      id: mockFlight.id,
+      price: mockFlight.price,
+      currency: mockFlight.currency,
+      duration: mockFlight.duration,
+      stops: mockFlight.stops,
+      airline: mockFlight.airline,
+      departure: {
+        airport: airports.departure,
+        time: mockFlight.departureTime,
+        date: departureDate.toLocaleDateString()
+      },
+      arrival: {
+        airport: airports.arrival,
+        time: arrival.time,
+        date: arrival.date
+      },
+      segments: [] // Mock segments - could be populated if needed
+    };
   }
 
   generateHotelsForDestination(destination: string): MockHotelData[] {

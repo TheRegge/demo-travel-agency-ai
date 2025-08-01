@@ -390,6 +390,7 @@ class AmadeusService {
   ): Promise<AmadeusFlightOffer[]> {
     const token = await this.getAccessToken();
     if (!token) {
+      console.warn('Amadeus: No access token available for flight search');
       return [];
     }
 
@@ -407,6 +408,9 @@ class AmadeusService {
         params.append('returnDate', returnDate);
       }
 
+      console.log(`🔍 Amadeus: Searching flights ${originCode} → ${destinationCode} on ${departureDate}`);
+      console.log(`📋 Amadeus: Request URL - ${this.baseUrl}/shopping/flight-offers?${params}`);
+
       const response = await this.withRateLimitHandling(() => 
         fetch(`${this.baseUrl}/shopping/flight-offers?${params}`, {
           headers: {
@@ -417,9 +421,24 @@ class AmadeusService {
       );
 
       const data = await response.json();
+      
+      if (response.ok) {
+        console.log(`✅ Amadeus: Found ${data.data?.length || 0} flight offers for ${originCode} → ${destinationCode}`);
+        if (data.data?.length > 0) {
+          console.log(`💰 Amadeus: Price range $${data.data[0]?.price?.total} - $${data.data[data.data.length - 1]?.price?.total}`);
+        }
+      } else {
+        console.error(`❌ Amadeus: Flight search failed (${response.status}):`, data);
+        if (data.errors) {
+          data.errors.forEach((error: { code: string; detail: string }) => {
+            console.error(`  - ${error.code}: ${error.detail}`);
+          });
+        }
+      }
+
       return data.data || [];
     } catch (error) {
-      console.error('Error searching flights:', error);
+      console.error('❌ Amadeus: Error searching flights:', error);
       return [];
     }
   }
@@ -468,10 +487,13 @@ class AmadeusService {
   async getAirportInfo(keyword: string): Promise<AirportInfo[]> {
     const token = await this.getAccessToken();
     if (!token) {
+      console.warn('Amadeus: No access token available for airport search');
       return [];
     }
 
     try {
+      console.log(`🔍 Amadeus: Searching airports for keyword "${keyword}"`);
+      
       const response = await this.withRateLimitHandling(() =>
         fetch(
           `https://test.api.amadeus.com/v1/reference-data/locations?subType=AIRPORT&keyword=${encodeURIComponent(keyword)}`,
@@ -485,10 +507,61 @@ class AmadeusService {
       );
 
       const data = await response.json();
+      
+      if (response.ok) {
+        console.log(`✅ Amadeus: Found ${data.data?.length || 0} airports for "${keyword}"`);
+        if (data.data?.length > 0) {
+          data.data.forEach((airport: AirportInfo) => {
+            console.log(`  - ${airport.name} (${airport.iataCode}) in ${airport.address.cityName}`);
+          });
+        }
+      } else {
+        console.error(`❌ Amadeus: Airport search failed (${response.status}):`, data);
+      }
+      
       return data.data || [];
     } catch (error) {
-      console.error('Error getting airport info:', error);
+      console.error('❌ Amadeus: Error getting airport info:', error);
       return [];
+    }
+  }
+
+  /**
+   * Test function to specifically check Dublin flight availability
+   */
+  async testDublinFlights(): Promise<{ success: boolean; details: string }> {
+    try {
+      console.log('🧪 Testing Dublin flight search...');
+      
+      // Test airport search for Dublin
+      const dublinAirports = await this.getAirportInfo('Dublin');
+      if (dublinAirports.length === 0) {
+        return { success: false, details: 'No Dublin airports found in Amadeus database' };
+      }
+
+      // Test flight search from NYC to Dublin
+      const departureDate = new Date();
+      departureDate.setDate(departureDate.getDate() + 30);
+      const departureDateStr = departureDate.toISOString().split('T')[0];
+
+      const flights = await this.searchFlights('NYC', 'DUB', departureDateStr, undefined, 1, 5);
+      
+      if (flights.length > 0) {
+        return { 
+          success: true, 
+          details: `Found ${flights.length} flights from NYC to Dublin. Prices: $${flights[0]?.price?.total} - $${flights[flights.length - 1]?.price?.total}` 
+        };
+      } else {
+        return { 
+          success: false, 
+          details: 'No flights found from NYC to Dublin. This could be due to route availability, API limits, or date restrictions.' 
+        };
+      }
+    } catch (error) {
+      return { 
+        success: false, 
+        details: `Test failed with error: ${error instanceof Error ? error.message : 'Unknown error'}` 
+      };
     }
   }
 
@@ -555,6 +628,64 @@ class AmadeusService {
       'FRA': 'Frankfurt',
       'AMS': 'Amsterdam',
     };
+  }
+
+  /**
+   * Check API status and rate limiting
+   */
+  async getApiStatus(): Promise<{
+    authenticated: boolean;
+    rateLimitStatus: string;
+    lastError?: string;
+  }> {
+    try {
+      const token = await this.getAccessToken();
+      if (!token) {
+        return {
+          authenticated: false,
+          rateLimitStatus: 'No authentication token available',
+          lastError: 'Missing API credentials or authentication failed'
+        };
+      }
+
+      // Try a simple airport search to test connectivity
+      const testResponse = await fetch(
+        'https://test.api.amadeus.com/v1/reference-data/locations?subType=AIRPORT&keyword=DUB&page%5Blimit%5D=1',
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      if (testResponse.ok) {
+        return {
+          authenticated: true,
+          rateLimitStatus: 'API is accessible and responding normally'
+        };
+      } else if (testResponse.status === 429) {
+        const retryAfter = testResponse.headers.get('Retry-After');
+        return {
+          authenticated: true,
+          rateLimitStatus: `Rate limited. Retry after: ${retryAfter || 'unknown'} seconds`,
+          lastError: 'Rate limit exceeded'
+        };
+      } else {
+        const errorData = await testResponse.json().catch(() => ({}));
+        return {
+          authenticated: true,
+          rateLimitStatus: `API error: ${testResponse.status}`,
+          lastError: errorData.error_description || `HTTP ${testResponse.status}`
+        };
+      }
+    } catch (error) {
+      return {
+        authenticated: false,
+        rateLimitStatus: 'Connection failed',
+        lastError: error instanceof Error ? error.message : 'Unknown error'
+      };
+    }
   }
 
   /**

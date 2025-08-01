@@ -215,6 +215,140 @@ export const transportationDatabase: TransportRoute[] = [
     ]
   },
 
+  // Dublin Routes - Major European connections
+  {
+    from: "london-uk",
+    to: "dublin-ireland",
+    region: "europe",
+    primary: {
+      method: "flight",
+      duration: "1h 30min",
+      cost: 85,
+      description: "Direct flight from Heathrow/Gatwick to Dublin Airport",
+      bookingInfo: "Aer Lingus, British Airways, and Ryanair offer frequent service"
+    },
+    alternatives: [
+      {
+        method: "ferry",
+        duration: "8h 30min",
+        cost: 65,
+        description: "Ferry from Holyhead to Dublin Port",
+        pros: ["Car transport available", "Scenic Irish Sea crossing"],
+        cons: ["Weather dependent", "Longer journey"]
+      }
+    ]
+  },
+  {
+    from: "paris-france",
+    to: "dublin-ireland", 
+    region: "europe",
+    primary: {
+      method: "flight",
+      duration: "2h 15min",
+      cost: 120,
+      description: "Direct flight from CDG to Dublin Airport",
+      bookingInfo: "Air France and Aer Lingus offer direct service. Book 2-3 weeks ahead."
+    },
+    alternatives: [
+      {
+        method: "train",
+        duration: "12h 45min",
+        cost: 180,
+        description: "Eurostar to London + flight to Dublin",
+        pros: ["Scenic route through France and UK"],
+        cons: ["Multiple transfers", "Longer travel time"]
+      }
+    ]
+  },
+  {
+    from: "dublin-ireland",
+    to: "edinburgh-scotland",
+    region: "europe", 
+    primary: {
+      method: "flight",
+      duration: "1h 45min",
+      cost: 95,
+      description: "Direct flight from Dublin to Edinburgh Airport",
+      bookingInfo: "Aer Lingus Regional and Ryanair serve this route daily"
+    },
+    alternatives: [
+      {
+        method: "ferry",
+        duration: "10h overnight",
+        cost: 120,
+        description: "Ferry to Liverpool + train to Edinburgh",
+        pros: ["Cabin accommodation", "Unique travel experience"],
+        cons: ["Long journey", "Weather dependent"]
+      }
+    ]
+  },
+  {
+    from: "amsterdam-netherlands",
+    to: "dublin-ireland",
+    region: "europe",
+    primary: {
+      method: "flight", 
+      duration: "2h 5min",
+      cost: 110,
+      description: "Direct flight from Schiphol to Dublin Airport",
+      bookingInfo: "KLM and Aer Lingus offer multiple daily flights"
+    },
+    alternatives: [
+      {
+        method: "train",
+        duration: "14h 30min", 
+        cost: 195,
+        description: "Train via London with Eurostar connection",
+        pros: ["Central station arrivals", "No airport security"],
+        cons: ["Multiple transfers", "Expensive"]
+      }
+    ]
+  },
+  {
+    from: "dublin-ireland",
+    to: "barcelona-spain",
+    region: "europe",
+    primary: {
+      method: "flight",
+      duration: "2h 50min", 
+      cost: 140,
+      description: "Direct flight from Dublin to El Prat Airport",
+      bookingInfo: "Aer Lingus and Vueling offer seasonal direct service"
+    },
+    alternatives: [
+      {
+        method: "flight",
+        duration: "5h 30min",
+        cost: 115,
+        description: "Connecting flight via London or Paris",
+        pros: ["More flight options", "Lower cost"],
+        cons: ["Connection time", "Risk of delays"]
+      }
+    ]
+  },
+  {
+    from: "dublin-ireland",
+    to: "rome-italy",
+    region: "europe",
+    primary: {
+      method: "flight",
+      duration: "3h 15min",
+      cost: 165,
+      description: "Direct flight from Dublin to Fiumicino Airport", 
+      bookingInfo: "Aer Lingus offers direct service. Book early for best prices."
+    },
+    alternatives: [
+      {
+        method: "flight",
+        duration: "5h 45min",
+        cost: 125,
+        description: "Connecting flight via London, Paris or Amsterdam",
+        pros: ["More airline options", "Competitive pricing"],
+        cons: ["Longer travel time", "Connection complexity"]
+      }
+    ]
+  },
+
   // Additional European Routes for Food Tours
   {
     from: "lyon-france",

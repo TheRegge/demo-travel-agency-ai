@@ -255,6 +255,9 @@ class RealDataService {
       enhanced.description = this.enhanceDescriptionWithRealData(trip.description, realData)
     }
 
+    // Add data source messaging for user transparency
+    enhanced.dataSourceMessage = this.createDataSourceMessage(enhanced.apiSources, enhanced.hotelDataSource)
+
     // Populate activityDetails with rich activity objects
     enhanced.activityDetails = await this.createActivityDetails(trip, realData)
 
@@ -408,9 +411,13 @@ class RealDataService {
             return result.value
           } else {
             // Fallback to mock data if enhancement fails
-            console.warn(`Failed to enhance trip "${trips[index].destination}":`, result.reason)
+            const trip = trips[index]
+            if (!trip) {
+              throw new Error(`Trip at index ${index} is undefined`)
+            }
+            console.warn(`Failed to enhance trip "${trip.destination}":`, result.reason)
             return {
-              ...trips[index],
+              ...trip,
               dataSource: 'mock' as const,
               lastUpdated: new Date(),
               apiSources: {
@@ -420,7 +427,7 @@ class RealDataService {
                 flightData: false,
                 hotelData: false,
               }
-            }
+            } as EnhancedTripRecommendation
           }
         })
       }
@@ -431,15 +438,25 @@ class RealDataService {
     return errorHandlingService.getFlightDataWithFallback(
       cityName,
       async (city) => {
+        console.log(`🔍 Real Data Service: Attempting to fetch flight data for ${city}`);
+        
         // This would require departure airport - simplified for demo
         // In a real implementation, you'd need user's location or selected departure city
         const airports = await amadeusService.getAirportInfo(city)
         if (airports.length === 0) {
+          console.warn(`⚠️ No airports found for ${city} - will use fallback data`);
           throw new Error(`No airports found for ${city}`)
         }
 
+        const firstAirport = airports[0]
+        if (!firstAirport) {
+          throw new Error(`First airport is undefined for ${city}`)
+        }
+
+        console.log(`✅ Found ${airports.length} airports for ${city}, using: ${firstAirport.iataCode}`);
+
         // Mock flight search from a major hub (would be dynamic in real app)
-        const destinationCode = airports[0].iataCode
+        const destinationCode = firstAirport.iataCode
         const departureDate = new Date()
         departureDate.setDate(departureDate.getDate() + 30) // 30 days from now
 
@@ -452,6 +469,12 @@ class RealDataService {
           5
         )
 
+        if (flights.length === 0) {
+          console.warn(`⚠️ No flights found for NYC → ${destinationCode} - will use fallback data`);
+          throw new Error(`No flights available for ${city}`)
+        }
+
+        console.log(`✅ Found ${flights.length} real flights for ${city}`);
         return flights.map(flight => amadeusService.formatFlightOfferForDisplay(flight))
       }
     )
@@ -475,14 +498,71 @@ class RealDataService {
         console.log(`Searching hotels for ${city} (${cityCode})`)
         const hotels = await amadeusService.searchHotels(
           cityCode,
-          checkIn.toISOString().split('T')[0],
-          checkOut.toISOString().split('T')[0],
+          checkIn.toISOString().split('T')[0] || '',
+          checkOut.toISOString().split('T')[0] || '',
           2
         )
 
         return hotels.map(hotel => amadeusService.formatHotelOfferForDisplay(hotel))
       }
     )
+  }
+
+  /**
+   * Create user-friendly message about data sources for transparency
+   */
+  private createDataSourceMessage(
+    apiSources: {
+      countryData: boolean;
+      weatherData: boolean;
+      attractionsData: boolean;
+      flightData: boolean;
+      hotelData: boolean;
+    },
+    hotelDataSource?: 'api' | 'mock' | 'generated'
+  ): string {
+    const realDataCount = Object.values(apiSources).filter(source => source).length;
+    const totalSources = Object.keys(apiSources).length;
+    
+    if (realDataCount === totalSources) {
+      return "All travel data is live and up-to-date from real APIs.";
+    }
+    
+    if (realDataCount === 0) {
+      return "Travel data is curated from our comprehensive database.";
+    }
+    
+    // Hybrid scenario - be specific about what's real vs mock
+    const realSources: string[] = [];
+    const mockSources: string[] = [];
+    
+    if (apiSources.countryData) realSources.push("country information");
+    else mockSources.push("country details");
+    
+    if (apiSources.weatherData) realSources.push("current weather");
+    else mockSources.push("weather estimates");
+    
+    if (apiSources.attractionsData) realSources.push("attractions");
+    else mockSources.push("suggested activities");
+    
+    if (apiSources.flightData) realSources.push("flight prices");
+    else mockSources.push("flight estimates");
+    
+    if (apiSources.hotelData) realSources.push("hotel availability");
+    else {
+      if (hotelDataSource === 'generated') mockSources.push("hotel recommendations");
+      else mockSources.push("accommodation options");
+    }
+    
+    let message = "";
+    if (realSources.length > 0) {
+      message += `Live data: ${realSources.join(", ")}. `;
+    }
+    if (mockSources.length > 0) {
+      message += `Curated data: ${mockSources.join(", ")}.`;
+    }
+    
+    return message.trim();
   }
 
   private enhanceDescriptionWithRealData(
@@ -518,7 +598,11 @@ class RealDataService {
         return []
       }
 
-      const [lat, lon] = countries[0].latlng
+      const firstCountry = countries[0]
+      if (!firstCountry) {
+        return []
+      }
+      const [lat, lon] = firstCountry.latlng
       return await openWeatherService.getWeatherForecast(lat, lon, days)
     } catch (error) {
       console.error(`Error fetching weather forecast for "${countryName}":`, error)

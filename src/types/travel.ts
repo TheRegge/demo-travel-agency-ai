@@ -345,6 +345,7 @@ export interface EnhancedTripRecommendation extends TripRecommendation {
     hotelData: boolean
   }
   hotelDataSource?: 'api' | 'mock' | 'generated'
+  dataSourceMessage?: string // User-friendly message about data sources
 }
 
 export interface PriceBreakdown {
