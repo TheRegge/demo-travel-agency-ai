@@ -10,7 +10,10 @@
       "Bash(npx shadcn-ui:*)",
       "Bash(npm run build:*)",
       "mcp__Ref__ref_search_documentation",
-      "Bash(npm run lint:*)"
+      "Bash(npm run lint:*)",
+      "Bash(npm test:*)",
+      "Bash(npm run test:coverage:*)",
+      "Bash(cat:*)"
     ],
     "deny": []
   }
