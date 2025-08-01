@@ -47,23 +47,27 @@ describe('/api/usage-stats', () => {
   it('should return usage statistics successfully', async () => {
     const mockStats = {
       gemini: {
-        calls: 150,
+        callsToday: 150,
+        callsThisHour: 12,
         errors: 2,
-        averageResponseTime: 1234,
-        totalTokens: 50000,
-        estimatedCost: 0.10
+        avgResponseTime: 1234,
+        cost: 0.10
       },
       unsplash: {
-        calls: 25,
+        callsToday: 25,
+        callsThisHour: 3,
         errors: 0,
-        averageResponseTime: 456,
-        totalTokens: 0,
-        estimatedCost: 0
+        avgResponseTime: 456,
+        cost: 0
       }
     }
 
     const mockTotalCost = 0.15
-    const mockQuotaWarnings = ['Daily API limit approaching (80% used)']
+    const mockQuotaWarnings = [{ 
+      provider: 'gemini', 
+      message: 'Daily API limit approaching (80% used)', 
+      severity: 'warning' as const 
+    }]
 
     mockApiUsageService.getAllStats.mockReturnValue(mockStats)
     mockApiUsageService.getTotalCostToday.mockReturnValue(mockTotalCost)
@@ -124,11 +128,11 @@ describe('/api/usage-stats', () => {
   it('should handle partial service failures', async () => {
     mockApiUsageService.getAllStats.mockReturnValue({
       gemini: {
-        calls: 100,
+        callsToday: 100,
+        callsThisHour: 8,
         errors: 5,
-        averageResponseTime: 1000,
-        totalTokens: 40000,
-        estimatedCost: 0.08
+        avgResponseTime: 1000,
+        cost: 0.08
       }
     })
     mockApiUsageService.getTotalCostToday.mockImplementation(() => {
@@ -147,18 +151,18 @@ describe('/api/usage-stats', () => {
   it('should include multiple quota warnings when present', async () => {
     const mockStats = {
       gemini: {
-        calls: 450,
+        callsToday: 450,
+        callsThisHour: 25,
         errors: 10,
-        averageResponseTime: 1500,
-        totalTokens: 120000,
-        estimatedCost: 0.24
+        avgResponseTime: 1500,
+        cost: 0.24
       }
     }
 
     const mockQuotaWarnings = [
-      'Daily API limit approaching (90% used)',
-      'Error rate threshold exceeded (2.2%)',
-      'Token usage high for current session'
+      { provider: 'gemini', message: 'Daily API limit approaching (90% used)', severity: 'warning' as const },
+      { provider: 'gemini', message: 'Error rate threshold exceeded (2.2%)', severity: 'critical' as const },
+      { provider: 'gemini', message: 'Token usage high for current session', severity: 'warning' as const }
     ]
 
     mockApiUsageService.getAllStats.mockReturnValue(mockStats)

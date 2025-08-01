@@ -104,6 +104,7 @@ describe('/api/conversation', () => {
       sessionsRemaining: 4,
       tokensUsed: 100,
       tokensRemaining: 2400,
+      estimatedCost: 0.20,
       resetTime: new Date(),
       currentSessionId: 'test-session-id'
     })
@@ -121,7 +122,7 @@ describe('/api/conversation', () => {
       isValid: true
     })
     
-    mockSecurityService.sanitizeInput.mockImplementation((body) => ({
+    mockSecurityService.sanitizeInput.mockImplementation((body: any) => ({
       input: body.input,
       conversationHistory: body.conversationHistory || []
     }))
@@ -137,6 +138,8 @@ describe('/api/conversation', () => {
         duration: 7,
         budget: 2000
       },
+      missingInfo: [],
+      conversationStage: 'planning',
       travelRelevance: 'travel_related'
     })
     
@@ -158,12 +161,25 @@ describe('/api/conversation', () => {
           customizations: {},
           score: 90,
           type: 'single'
-        }]
+        }],
+        totalBudget: 1800
       },
       followUpQuestions: ['Would you like hotel recommendations?']
     })
     
-    mockRealDataService.enhanceMultipleTrips.mockImplementation((trips) => trips)
+    mockRealDataService.enhanceMultipleTrips.mockImplementation(async (trips) => 
+      trips.map(trip => ({
+        ...trip,
+        dataSource: 'mock' as const,
+        apiSources: {
+          countryData: false,
+          weatherData: false,
+          attractionsData: false,
+          flightData: false,
+          hotelData: false
+        }
+      }))
+    )
   })
 
   afterAll(() => {
@@ -197,6 +213,7 @@ describe('/api/conversation', () => {
         sessionsRemaining: 0,
         tokensUsed: 0,
         tokensRemaining: 0,
+        estimatedCost: 5.00,
         resetTime: new Date()
       })
 
@@ -284,7 +301,13 @@ describe('/api/conversation', () => {
     it('should handle non-travel questions', async () => {
       mockAnalyzeUserInputWithAI.mockResolvedValue({
         travelRelevance: 'non_travel',
-        userIntent: {}
+        userIntent: {
+          keywords: [],
+          ambiguityLevel: 'clear'
+        },
+        extractedInfo: {},
+        missingInfo: [],
+        conversationStage: 'initial'
       })
 
       const request = createMockRequest({
@@ -305,7 +328,13 @@ describe('/api/conversation', () => {
     it('should handle travel-adjacent questions', async () => {
       mockAnalyzeUserInputWithAI.mockResolvedValue({
         travelRelevance: 'travel_adjacent',
-        userIntent: {}
+        userIntent: {
+          keywords: ['culture'],
+          ambiguityLevel: 'clear'
+        },
+        extractedInfo: {},
+        missingInfo: [],
+        conversationStage: 'initial'
       })
 
       const request = createMockRequest({
@@ -326,9 +355,14 @@ describe('/api/conversation', () => {
       mockGenerateClarificationQuestions.mockReturnValue([
         {
           id: 'duration-001',
-          text: 'How many days are you planning to travel?',
+          question: 'How many days are you planning to travel?',
           type: 'duration',
-          options: ['3-4 days', '5-7 days', '1-2 weeks']
+          required: true,
+          options: [
+            { value: '3-4', label: '3-4 days' },
+            { value: '5-7', label: '5-7 days' },
+            { value: '7-14', label: '1-2 weeks' }
+          ]
         }
       ])
 
@@ -395,9 +429,17 @@ describe('/api/conversation', () => {
         activities: ['Sightseeing', 'Dining', 'River Cruise'],
         season: 'spring',
         kidFriendly: false,
-        customizations: { weather: 'sunny' },
+        customizations: { departureDate: '2024-05-15' },
         score: 95,
-        type: 'single'
+        type: 'single' as const,
+        dataSource: 'real' as const,
+        apiSources: {
+          countryData: true,
+          weatherData: true,
+          attractionsData: true,
+          flightData: false,
+          hotelData: false
+        }
       }
 
       mockRealDataService.enhanceMultipleTrips.mockResolvedValue([enhancedTrip])
@@ -483,7 +525,7 @@ describe('/api/conversation', () => {
     it('should handle empty recommendations from AI', async () => {
       mockQueryGeminiAI.mockResolvedValue({
         chatMessage: 'I need more information to help you.',
-        recommendations: { trips: [] },
+        recommendations: { trips: [], totalBudget: 0 },
         followUpQuestions: ['Where would you like to go?']
       })
 

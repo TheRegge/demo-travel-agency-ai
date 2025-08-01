@@ -54,13 +54,16 @@ type PhotoData = {
 type APIHotel = {
   id: string
   name: string
-  rating?: string
-  address: string
-  coordinates: [number, number]
-  minPrice: number
-  currency: string
+  rating?: string | number
+  address?: string
+  coordinates?: [number, number]
+  minPrice?: number
+  pricePerNight?: number
+  currency?: string
   amenities?: string[]
   description?: string
+  type?: string
+  kidFriendly?: boolean
 }
 
 // Union type for hotels from different sources
@@ -151,8 +154,8 @@ export const TripDetailModal = ({
         selectedHotel: {
           id: selectedHotel.id,
           name: selectedHotel.name,
-          minPrice: 'minPrice' in selectedHotel ? selectedHotel.minPrice : selectedHotel.pricePerNight,
-          currency: 'currency' in selectedHotel ? selectedHotel.currency : 'USD'
+          minPrice: ('minPrice' in selectedHotel && selectedHotel.minPrice) ? selectedHotel.minPrice : ('pricePerNight' in selectedHotel ? selectedHotel.pricePerNight : 100),
+          currency: ('currency' in selectedHotel && selectedHotel.currency) ? selectedHotel.currency : 'USD'
         }
       }),
       selectedFlights: {
@@ -502,7 +505,7 @@ export const TripDetailModal = ({
                               <div>
                                 <p className="text-xs text-gray-500">From</p>
                                 <p className="text-lg font-bold text-emerald-600">
-                                  {formatCurrency('minPrice' in hotel ? hotel.minPrice : hotel.pricePerNight)}
+                                  {formatCurrency(('minPrice' in hotel && hotel.minPrice) ? hotel.minPrice : ('pricePerNight' in hotel ? hotel.pricePerNight : 100))}
                                   <span className="text-xs text-gray-500 font-normal">/night</span>
                                 </p>
                               </div>

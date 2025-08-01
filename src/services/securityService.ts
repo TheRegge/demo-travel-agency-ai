@@ -195,9 +195,12 @@ class SecurityService {
 
     // Check for rapid-fire requests
     if (activity.requestTimes.length >= 2) {
-      const timeBetweenRequests = now - activity.requestTimes[activity.requestTimes.length - 2]
-      if (timeBetweenRequests < SECURITY_CONFIG.BOT_DETECTION.MIN_TYPING_TIME_MS) {
-        suspiciousScore += 2
+      const previousRequestTime = activity.requestTimes[activity.requestTimes.length - 2]
+      if (previousRequestTime !== undefined) {
+        const timeBetweenRequests = now - previousRequestTime
+        if (timeBetweenRequests < SECURITY_CONFIG.BOT_DETECTION.MIN_TYPING_TIME_MS) {
+          suspiciousScore += 2
+        }
       }
     }
 
@@ -247,13 +250,18 @@ class SecurityService {
       }
     }
 
-    return {
+    const result: SecurityCheckResult = {
       isValid: !requiresCaptcha, // Invalid if CAPTCHA is required but not provided
       requiresCaptcha,
       suspiciousScore,
-      severity: requiresCaptcha ? 'medium' : 'low',
-      error: requiresCaptcha ? 'Please complete the security verification to continue.' : undefined
+      severity: requiresCaptcha ? 'medium' : 'low'
     }
+    
+    if (requiresCaptcha) {
+      result.error = 'Please complete the security verification to continue.'
+    }
+    
+    return result
   }
 
   /**
@@ -334,20 +342,26 @@ class SecurityService {
       for (const message of parsed.conversationHistory) {
         const historyCheck = this.detectPromptInjection(message.content)
         if (!historyCheck.isValid) {
-          return {
+          const result: SecurityCheckResult = {
             isValid: false,
-            error: 'Invalid content detected in conversation history',
-            severity: historyCheck.severity
+            error: 'Invalid content detected in conversation history'
           }
+          if (historyCheck.severity) {
+            result.severity = historyCheck.severity
+          }
+          return result
         }
       }
       
       // Return success with bot analysis info
-      return { 
+      const result: SecurityCheckResult = { 
         isValid: true,
-        requiresCaptcha: false,
-        suspiciousScore: botCheck.suspiciousScore
+        requiresCaptcha: false
       }
+      if (botCheck.suspiciousScore !== undefined) {
+        result.suspiciousScore = botCheck.suspiciousScore
+      }
+      return result
     } catch (error) {
       if (error instanceof z.ZodError) {
         return {
@@ -419,10 +433,19 @@ class SecurityService {
       // Additional sanitization
       return {
         input: this.sanitizeText(parsed.input),
-        conversationHistory: parsed.conversationHistory.map(msg => ({
-          ...msg,
-          content: this.sanitizeText(msg.content)
-        }))
+        conversationHistory: parsed.conversationHistory.map(msg => {
+          const sanitizedMsg: any = {
+            type: msg.type,
+            content: this.sanitizeText(msg.content)
+          }
+          
+          // Only add timestamp if it exists
+          if (msg.timestamp) {
+            sanitizedMsg.timestamp = msg.timestamp
+          }
+          
+          return sanitizedMsg
+        })
       }
     } catch (error) {
       console.error('Sanitization parsing error:', error)

@@ -459,7 +459,7 @@ describe('SecurityService', () => {
       
       expect(result).not.toBeNull()
       expect(result?.input).toBe('I want to travel to Paris')
-      expect(result?.conversationHistory[0].content).toBe('Hello world')
+      expect(result?.conversationHistory[0]?.content).toBe('Hello world')
     })
 
     it('should enforce max length during sanitization', () => {

@@ -78,6 +78,7 @@ export interface MockFlightData {
 }
 
 export interface MockHotelData {
+  id: string;
   name: string;
   rating: number;
   pricePerNight: number;
@@ -586,16 +587,10 @@ class ErrorHandlingService {
     return hotelTemplates.map((template, index) => ({
       id: `generated-hotel-${cityName.toLowerCase().replace(/\s+/g, '-')}-${index + 1}`,
       name: template.nameTemplate,
-      type: template.type,
       pricePerNight: template.basePrice + Math.floor(Math.random() * template.priceRange),
-      minPrice: template.basePrice + Math.floor(Math.random() * template.priceRange), // For compatibility
       rating: Math.round(template.rating * 10) / 10,
       amenities: template.amenities,
-      kidFriendly: template.type !== 'luxury', // Luxury hotels may be less kid-friendly
-      description: `${template.type === 'luxury' ? 'Luxurious' : template.type === 'budget' ? 'Comfortable and affordable' : 'Charming'} accommodation in the heart of ${cityName}.`,
-      address: `${Math.floor(Math.random() * 999) + 1} ${['Main', 'Central', 'Historic', 'Royal', 'Grand'][Math.floor(Math.random() * 5)]} Street, ${cityName}`,
-      coordinates: [0, 0],
-      currency: 'USD'
+      description: `${template.type === 'luxury' ? 'Luxurious' : template.type === 'budget' ? 'Comfortable and affordable' : 'Charming'} accommodation in the heart of ${cityName}.`
     }))
   }
 

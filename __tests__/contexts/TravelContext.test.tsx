@@ -1,7 +1,6 @@
 import { renderHook, act } from '@testing-library/react'
 import { TravelProvider, useTravelContext } from '../../src/contexts/TravelContext'
 import { 
-  createMockChatMessage, 
   createMockTripRecommendation,
   createMockConversationContext 
 } from '../utils/testUtils'
@@ -60,22 +59,20 @@ describe('TravelContext', () => {
   describe('Chat History Management', () => {
     it('should add messages to chat history', () => {
       const { result } = renderHook(() => useTravelContext(), { wrapper })
-      const testMessage = createMockChatMessage({ content: 'Hello' })
-      
       act(() => {
         result.current.actions.addMessage({
-          type: 'user',
+          role: 'user',
           content: 'Hello'
         })
       })
       
       expect(result.current.state.chatHistory).toHaveLength(1)
       expect(result.current.state.chatHistory[0]).toMatchObject({
-        type: 'user',
+        role: 'user',
         content: 'Hello'
       })
-      expect(result.current.state.chatHistory[0].id).toBeDefined()
-      expect(result.current.state.chatHistory[0].timestamp).toBeInstanceOf(Date)
+      expect(result.current.state.chatHistory[0]?.id).toBeDefined()
+      expect(result.current.state.chatHistory[0]?.timestamp).toBeInstanceOf(Date)
     })
 
     it('should clear chat history', () => {
@@ -84,7 +81,7 @@ describe('TravelContext', () => {
       // Add a message first
       act(() => {
         result.current.actions.addMessage({
-          type: 'user',
+          role: 'user',
           content: 'Hello'
         })
       })
@@ -105,14 +102,14 @@ describe('TravelContext', () => {
       
       act(() => {
         messageId = result.current.actions.addMessage({
-          type: 'user',
+          role: 'user',
           content: 'Hello'
         })
       })
       
       expect(messageId).toBeDefined()
       expect(typeof messageId).toBe('string')
-      expect(result.current.state.chatHistory[0].id).toBe(messageId)
+      expect(result.current.state.chatHistory[0]?.id).toBe(messageId)
     })
   })
 
@@ -129,8 +126,8 @@ describe('TravelContext', () => {
       })
       
       expect(result.current.state.recommendedTrips).toHaveLength(2)
-      expect(result.current.state.recommendedTrips[0].destination).toBe('Paris')
-      expect(result.current.state.recommendedTrips[1].destination).toBe('Tokyo')
+      expect(result.current.state.recommendedTrips[0]?.destination).toBe('Paris')
+      expect(result.current.state.recommendedTrips[1]?.destination).toBe('Tokyo')
     })
 
     it('should add trip recommendations with message association', () => {
@@ -147,9 +144,9 @@ describe('TravelContext', () => {
         messageId,
         trips: mockTrips
       })
-      expect(result.current.state.tripHistory[0].id).toBeDefined()
-      expect(result.current.state.tripHistory[0].timestamp).toBeInstanceOf(Date)
-      expect(result.current.state.currentTripDisplayId).toBe(result.current.state.tripHistory[0].id)
+      expect(result.current.state.tripHistory[0]?.id).toBeDefined()
+      expect(result.current.state.tripHistory[0]?.timestamp).toBeInstanceOf(Date)
+      expect(result.current.state.currentTripDisplayId).toBe(result.current.state.tripHistory[0]?.id)
     })
 
     it('should retrieve trips by message ID', () => {
@@ -231,7 +228,7 @@ describe('TravelContext', () => {
   describe('Filter Management', () => {
     it('should update filters', () => {
       const { result } = renderHook(() => useTravelContext(), { wrapper })
-      const filters = { budget: 5000, destination: 'Paris' }
+      const filters = { budget: { min: 1000, max: 5000 }, destination: 'Paris' }
       
       act(() => {
         result.current.actions.updateFilters(filters)
@@ -244,7 +241,7 @@ describe('TravelContext', () => {
       const { result } = renderHook(() => useTravelContext(), { wrapper })
       
       act(() => {
-        result.current.actions.updateFilters({ budget: 5000 })
+        result.current.actions.updateFilters({ budget: { min: 0, max: 5000 } })
       })
       
       act(() => {
@@ -252,7 +249,7 @@ describe('TravelContext', () => {
       })
       
       expect(result.current.state.activeFilters).toEqual({
-        budget: 5000,
+        budget: { min: 0, max: 5000 },
         destination: 'Paris'
       })
     })
@@ -262,10 +259,10 @@ describe('TravelContext', () => {
       
       // Set some filters first
       act(() => {
-        result.current.actions.updateFilters({ budget: 5000, destination: 'Paris' })
+        result.current.actions.updateFilters({ budget: { min: 0, max: 5000 }, destination: 'Paris' })
       })
       
-      expect(result.current.state.activeFilters).toEqual({ budget: 5000, destination: 'Paris' })
+      expect(result.current.state.activeFilters).toEqual({ budget: { min: 0, max: 5000 }, destination: 'Paris' })
       
       // Clear filters
       act(() => {

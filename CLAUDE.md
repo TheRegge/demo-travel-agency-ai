@@ -284,3 +284,6 @@ Refer to `docs/travel_agency_prd.md` for complete technical specifications, user
 ### Chat Interface Design
 - **Do NOT create an independant /chat page for this application**
 - All chat-related interactions happen on the home page of this application
+
+## Interaction Guidance
+- **Never try or ask to run 'npm run dev' yourself.**

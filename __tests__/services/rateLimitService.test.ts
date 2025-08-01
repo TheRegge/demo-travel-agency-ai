@@ -47,7 +47,7 @@ describe('RateLimitService', () => {
     })
 
     it('should calculate cost properly', async () => {
-      const status = await rateLimitService.checkRateLimit(1000) // 1000 tokens
+      const status = await rateLimitService.checkRateLimit()
       
       expect(status.allowed).toBe(true)
       expect(typeof status.estimatedCost).toBe('number')

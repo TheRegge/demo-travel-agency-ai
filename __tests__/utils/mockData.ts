@@ -92,13 +92,13 @@ export const mockDestination: MockDestination = {
 export const mockChatMessages: ChatMessage[] = [
   {
     id: 'msg-1',
-    type: 'user',
+    role: 'user',
     content: 'I want to plan a romantic trip to Paris',
     timestamp: new Date('2024-01-01T12:00:00Z')
   },
   {
     id: 'msg-2',
-    type: 'assistant',
+    role: 'assistant',
     content: 'I\'d love to help you plan a romantic trip to Paris! Here are some wonderful options:',
     timestamp: new Date('2024-01-01T12:00:30Z')
   }

@@ -286,16 +286,16 @@ class RealDataService {
       // Try to match with mock destination activities first
       if (mockDestination) {
         activityDetail = mockDestination.activities.find(mockActivity =>
-          mockActivity.name.toLowerCase().includes(activityName.toLowerCase()) ||
-          activityName.toLowerCase().includes(mockActivity.name.toLowerCase())
+          mockActivity.name.toLowerCase().includes(activityName?.toLowerCase() || '') ||
+          (activityName?.toLowerCase() || '').includes(mockActivity.name.toLowerCase())
         ) || null
       }
 
       // If no mock match, try to match with real attractions data
       if (!activityDetail && realData?.attractions) {
         const matchingAttraction = realData.attractions.find(attraction =>
-          attraction.name.toLowerCase().includes(activityName.toLowerCase()) ||
-          activityName.toLowerCase().includes(attraction.name.toLowerCase())
+          attraction.name.toLowerCase().includes(activityName?.toLowerCase() || '') ||
+          (activityName?.toLowerCase() || '').includes(attraction.name.toLowerCase())
         )
 
         if (matchingAttraction) {
@@ -306,8 +306,12 @@ class RealDataService {
             duration: 4, // Default 4 hours for attractions
             cost: 25, // Default cost estimate
             ageAppropriate: true,
-            description: matchingAttraction.description || `Visit ${matchingAttraction.name}, a popular attraction in ${trip.destination}.`,
-            location: matchingAttraction.address
+            description: matchingAttraction.description || `Visit ${matchingAttraction.name}, a popular attraction in ${trip.destination}.`
+          }
+          
+          // Only add location if it exists
+          if (matchingAttraction.address) {
+            activityDetail.location = matchingAttraction.address
           }
         }
       }
@@ -316,8 +320,8 @@ class RealDataService {
       if (!activityDetail) {
         activityDetail = {
           id: `generic-${i}`,
-          name: activityName,
-          type: this.inferActivityType(activityName),
+          name: activityName || 'Activity',
+          type: this.inferActivityType(activityName || ''),
           duration: 3, // Default 3 hours
           cost: 20, // Default cost
           ageAppropriate: true,
@@ -325,7 +329,9 @@ class RealDataService {
         }
       }
 
-      activityDetails.push(activityDetail)
+      if (activityDetail) {
+        activityDetails.push(activityDetail)
+      }
     }
 
     return activityDetails
@@ -463,7 +469,7 @@ class RealDataService {
         const flights = await amadeusService.searchFlights(
           'NYC', // Mock departure - would be dynamic
           destinationCode,
-          departureDate.toISOString().split('T')[0],
+          departureDate.toISOString().split('T')[0] || departureDate.toISOString().substring(0, 10),
           undefined,
           1,
           5

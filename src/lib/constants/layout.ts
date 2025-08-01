@@ -36,7 +36,7 @@ export const SPACING = {
   chatPadding: "p-4 sm:p-5 md:p-6",
   cardPadding: "p-3 sm:p-4",
   bottomOffset: "bottom-[200px] md:bottom-[280px]",
-  inputBottomOffset: "bottom-[15px] md:bottom-[70px]"
+  inputBottomOffset: "bottom-0"
 } as const
 
 // Scroll Buffer Values

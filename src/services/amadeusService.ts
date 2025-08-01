@@ -544,7 +544,7 @@ class AmadeusService {
       departureDate.setDate(departureDate.getDate() + 30);
       const departureDateStr = departureDate.toISOString().split('T')[0];
 
-      const flights = await this.searchFlights('NYC', 'DUB', departureDateStr, undefined, 1, 5);
+      const flights = await this.searchFlights('NYC', 'DUB', departureDateStr || '', undefined, 1, 5);
       
       if (flights.length > 0) {
         return { 

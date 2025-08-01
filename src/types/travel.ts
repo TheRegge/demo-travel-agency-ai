@@ -323,12 +323,16 @@ export interface RealAPIDestination {
   hotels?: Array<{
     id: string
     name: string
-    rating?: string
-    address: string
-    coordinates: [number, number]
-    minPrice: number
-    currency: string
+    rating?: string | number
+    address?: string
+    coordinates?: [number, number]
+    minPrice?: number
+    pricePerNight?: number
+    currency?: string
     amenities?: string[]
+    type?: string
+    kidFriendly?: boolean
+    description?: string
   }>
 }
 
