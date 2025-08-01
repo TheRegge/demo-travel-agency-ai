@@ -1,12 +1,13 @@
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import "./globals.css";
-import { TravelProvider } from "@/contexts/TravelContext";
+import type { Metadata } from "next"
+import { Inter } from "next/font/google"
+import "./globals.css"
+import { TravelProvider } from "@/contexts/TravelContext"
+import { Analytics } from "@vercel/analytics/next"
 
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
-});
+})
 
 export const metadata: Metadata = {
   title: "DreamVoyager Travel - AI-Powered Travel Planning",
@@ -18,12 +19,12 @@ export const metadata: Metadata = {
     description: "Discover your perfect trip with our intelligent AI travel assistant.",
     type: "website",
   },
-};
+}
 
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode;
+  children: React.ReactNode
 }>) {
   return (
     <html lang="en">
@@ -34,7 +35,8 @@ export default function RootLayout({
         <TravelProvider>
           {children}
         </TravelProvider>
+        <Analytics />
       </body>
     </html>
-  );
+  )
 }
