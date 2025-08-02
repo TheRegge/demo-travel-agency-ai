@@ -129,10 +129,10 @@ export default function HomePage() {
       )}
 
       {/* Scrollable AI Responses Area - Absolute positioned */}
-      <section className={`absolute inset-0 ${SPACING.bottomOffset}`} style={{ zIndex: Z_INDEX.chat }} role="log" aria-live="polite" aria-label="Chat conversation">
+      <section className="absolute top-0 left-0 right-0 bottom-[200px] md:bottom-[280px]" style={{ zIndex: Z_INDEX.chat }} role="log" aria-live="polite" aria-label="Chat conversation">
         <div className="relative h-full">
           <ScrollArea ref={scrollAreaRef} className="h-full px-4">
-            <div className="mx-auto max-w-4xl w-full h-full flex flex-col justify-end">
+            <div className="mx-auto max-w-4xl w-full">
               <div className="space-y-6 py-8 pb-6 sm:pb-8 md:pb-12">
                 {/* Display All Chat Messages with Associated Trip Cards */}
                 {travelState.chatHistory
@@ -196,8 +196,8 @@ export default function HomePage() {
             </div>
           </ScrollArea>
 
-          {/* Gradient fade overlay at bottom - matches flat tropical background */}
-          <div className="absolute bottom-0 left-0 right-0 h-20 pointer-events-none z-10" style={{ background: 'linear-gradient(to top, var(--sky-light) 0%, transparent 100%)' }}></div>
+          {/* Gradient fade overlay at bottom of chat container - matches flat tropical background */}
+          <div className="absolute bottom-0 left-0 right-0 h-20 pointer-events-none z-10 bg-gradient-to-t from-sky-50 to-transparent"></div>
         </div>
       </section>
 
