@@ -170,7 +170,7 @@ export async function analyzeUserInputWithAI(
 
     // Generate analysis using Gemini
     const { text } = await generateText({
-      model: google('gemini-2.0-flash-exp'),
+      model: google('gemini-3.6-flash'),
       prompt: fullPrompt,
       maxTokens: 1000,
       temperature: 0.3, // Low temperature for consistent structured output

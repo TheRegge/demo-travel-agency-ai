@@ -375,7 +375,7 @@ export const queryGeminiAI = async (
 
     // Generate content using AI SDK
     const { text } = await generateText({
-      model: google('gemini-2.0-flash-exp'),
+      model: google('gemini-3.6-flash'),
       prompt: enhancedPrompt,
       maxTokens: 2000,
       temperature: 0.7,
