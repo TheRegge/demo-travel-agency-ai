@@ -377,7 +377,7 @@ export const queryGeminiAI = async (
     const { text } = await generateText({
       model: google('gemini-3.6-flash'),
       prompt: enhancedPrompt,
-      maxTokens: 2000,
+      maxTokens: 8000, // Gemini 3.x thinking tokens count against this cap
       temperature: 0.7,
     })
 

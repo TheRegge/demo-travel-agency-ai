@@ -172,7 +172,7 @@ export async function analyzeUserInputWithAI(
     const { text } = await generateText({
       model: google('gemini-3.6-flash'),
       prompt: fullPrompt,
-      maxTokens: 1000,
+      maxTokens: 4000, // Gemini 3.x thinking tokens count against this cap
       temperature: 0.3, // Low temperature for consistent structured output
     })
 
